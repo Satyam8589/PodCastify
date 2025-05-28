@@ -4,6 +4,7 @@ import Newsletter from "@/components/Newsletter";
 import ContactForm from "@/components/ContactForm";
 import Button from "@/components/Button";
 import About from "@/components/About";
+import LatestBlogs from "@/components/LatestBlogs";
 import React from "react";
 import "./globals.css";
 
@@ -36,7 +37,8 @@ export default function Home() {
                 <span className="text-indigo-300">Top Podcasts</span>
               </h1>
               <p className="text-gray-200">
-                Explore trending podcast episodes, insightful interviews, and inspiring stories. Stay updated with the latest.
+                Explore trending podcast episodes, insightful interviews, and
+                inspiring stories. Stay updated with the latest.
               </p>
               <Button className="bg-indigo-600 hover:bg-indigo-700 transition-colors mt-4">
                 <a href="/podcast" className="text-white font-semibold">
@@ -66,6 +68,10 @@ export default function Home() {
 
       {/* Newsletter */}
       <Newsletter />
+
+      {/* Latest Blogs */}
+      <LatestBlogs />
+      
 
       {/* Contact */}
       <section id="contact" className="max-w-5xl mx-auto px-4 py-12">
