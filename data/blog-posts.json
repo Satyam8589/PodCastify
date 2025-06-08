@@ -1,0 +1,37 @@
+[
+  {
+    "_id": "17183b0b-be58-4d25-af87-39c34ac928f3",
+    "title": "The Rise of AI in Everyday Life",
+    "excerpt": "An insightful journey through how Artificial Intelligence is silently transforming your daily life.",
+    "content": "Artificial Intelligence (AI) is no longer just a buzzword in tech — it's the silent powerhouse reshaping everything around us. In this captivating episode of PodCastify, we sit down with developers, researchers, students, and everyday users to discuss how AI is seamlessly woven into the fabric of our lives.\r\n\r\nFrom the voice assistant that greets you in the morning, to the YouTube and Netflix recommendations that understand your preferences better than your friends — AI is here, and it’s smarter than ever.\r\n\r\nWe dive into:\r\n\r\nHow AI models like ChatGPT are helping people write, code, and even heal emotionally\r\n\r\nReal-life case studies of AI in education, healthcare, transportation, and media\r\n\r\nWhether AI will replace jobs or create new ones\r\n\r\nThe ethical debates surrounding facial recognition, surveillance, and AI-generated content\r\n\r\nHow to get started if you're a student or curious learner\r\n\r\nWhether you're an AI enthusiast or a curious skeptic, this episode is designed to both inform and inspire. We wrap up with tips on how you can stay ahead in an AI-first world.\r\n\r\n🔗 Listen to the full episode here: https://example.com/podcast-episode\r\n🎥 YouTube Companion Video: https://www.youtube.com/watch?v=2ePf9rue1Ao\r\n\r\nSubscribe for more episodes every week as we uncover the trends, stories, and people driving the future of tech.",
+    "category": "getting-started",
+    "author": "Satyam kumar singh",
+    "date": "2025-06-08T23:47:00.000Z",
+    "time": "05:17",
+    "readTime": "5 min read",
+    "image": "/blog-images/1749422866561-4178ad91-afad-45c7-8fa6-b7c0a9bc97df-OIP (1).jpeg",
+    "tags": [],
+    "featured": false,
+    "createdAt": "2025-06-08T22:47:46.564Z"
+  },
+  {
+    "_id": "1",
+    "title": "Getting Started with Podcasting: A Complete Beginner's Guide",
+    "excerpt": "Learn the fundamentals of podcasting, from choosing your niche to recording your first episode.",
+    "content": "<h2>Welcome to the World of Podcasting</h2><p>Starting a podcast can seem overwhelming, but with the right guidance, anyone can create compelling audio content.</p>",
+    "category": "getting-started",
+    "author": "Sarah Johnson",
+    "date": "2024-03-15T09:30:00.000Z",
+    "time": "09:30 AM",
+    "readTime": "8 min read",
+    "image": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    "tags": [
+      "beginner",
+      "equipment",
+      "recording",
+      "publishing"
+    ],
+    "featured": true,
+    "createdAt": "2024-03-15T09:30:00.000Z"
+  }
+]
