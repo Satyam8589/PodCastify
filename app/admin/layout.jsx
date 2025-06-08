@@ -1,83 +1,101 @@
-"use client";
+'use client';
+import { useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
+import { auth } from '../../lib/auth';
+import AdminAuthGuard from '../../components/AdminAuthGuard';
+import { LogOut, User, Shield } from 'lucide-react';
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { HiMenu } from "react-icons/hi";
-import Sidebar from "@/components/AdminComponents/Slidebar";
-import { usePathname } from "next/navigation";
+export default function AdminLayout({ children }) {
+  const router = useRouter();
 
-export default function Layout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLargeScreen, setIsLargeScreen] = useState(false);
-  const pathname = usePathname();
-
-  // Listen to window resize and update isLargeScreen
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 768px)");
-    const handleMediaChange = (e) => setIsLargeScreen(e.matches);
-
-    setIsLargeScreen(mediaQuery.matches);
-
-    mediaQuery.addEventListener("change", handleMediaChange);
-    return () => mediaQuery.removeEventListener("change", handleMediaChange);
-  }, []);
-
-  // Close sidebar when pathname changes (navigation)
-  useEffect(() => {
-    if (!isLargeScreen) {
-      setSidebarOpen(false);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // Cookie will be cleared by AdminAuthGuard
+      router.push('/admin/login');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
-  }, [pathname, isLargeScreen]);
-
-  const isSidebarVisible = isLargeScreen || sidebarOpen;
-
-  const handleOverlayClick = () => {
-    if (!isLargeScreen) setSidebarOpen(false);
-  };
-
-  const toggleSidebar = () => {
-    if (!isLargeScreen) setSidebarOpen((prev) => !prev);
   };
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar isOpen={isSidebarVisible} />
-
-      {isSidebarVisible && !isLargeScreen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 z-20 md:hidden"
-          onClick={handleOverlayClick}
-        />
-      )}
-
-      <div className="flex flex-col w-full">
-        <div className="bg-gradient-to-r from-yellow-100 via-pink-200 to-blue-200 flex items-center justify-between py-3 px-4 md:px-12 border-b border-black">
-          {!isLargeScreen && (
-            <button
-              onClick={toggleSidebar}
-              className="text-2xl text-purple-700 md:hidden z-40"
-            >
-              <HiMenu />
-            </button>
-          )}
-
-          <h3 className="font-medium">Admin Panel</h3>
-
-          <div className="flex items-center gap-2">
-            <Image
-              src="/images/prod_logo.png"
-              alt="PodCastify Logo"
-              width={40}
-              height={40}
-            />
-            <h1 className="text-xl font-bold text-purple-700 hidden sm:block">
-              PodCastify
-            </h1>
+    <AdminAuthGuard>
+      <div className="min-h-screen bg-gray-50">
+        {/* Admin Header */}
+        <header className="bg-white shadow-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center gap-3">
+                <Shield className="w-8 h-8 text-purple-600" />
+                <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <User className="w-4 h-4" />
+                  <span>{auth.currentUser?.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </header>
 
-        <main className="flex-1">{children}</main>
+        {/* Admin Navigation */}
+        <nav className="bg-gray-800 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex space-x-8 h-12 items-center">
+              <button
+                onClick={() => router.push('/admin/dashboard')}
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => router.push('/admin/blogLists')}
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Blog Lists
+              </button>
+              <button
+                onClick={() => router.push('/admin/newsLists')}
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                News Lists
+              </button>
+              <button
+                onClick={() => router.push('/admin/podcastLists')}
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Podcast Lists
+              </button>
+              <button
+                onClick={() => router.push('/admin/upload')}
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Upload
+              </button>
+              <button
+                onClick={() => router.push('/admin/subscription')}
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+              >
+                Subscription
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          {children}
+        </main>
       </div>
-    </div>
+    </AdminAuthGuard>
   );
 }

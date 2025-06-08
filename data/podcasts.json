@@ -1,0 +1,73 @@
+[
+  {
+    "id": "1749392767343ea8wvgmz8",
+    "title": "\"The Rise and Fall of Vijay Mallya: King of Good Times to Fugitive\"",
+    "description": "This episode explores the meteoric rise of Vijay Mallya—once hailed as the King of Good Times—and his dramatic downfall due to financial scandals, unpaid loans, and legal battles. Tune in as we decode his flamboyant lifestyle, business empire, and eventual escape from India.",
+    "podcastLink": "https://youtu.be/MdeQMVBuGgY?si=e0ZVf1iDwA30mpR6",
+    "date": "2025-06-08",
+    "time": "19:20",
+    "thumbnail": "/uploads/podcasts/1749392767342-vijay.jpeg",
+    "createdAt": "2025-06-08T14:26:07.343Z",
+    "updatedAt": "2025-06-08T14:26:07.343Z"
+  },
+  {
+    "id": "1",
+    "title": "Why AI is Eating the World",
+    "description": "Exploring the rise of artificial intelligence and its impact on society",
+    "date": "May 25, 2025",
+    "time": "10:00 AM",
+    "thumbnail": "/images/ai-world.jpg",
+    "podcastLink": "https://example.com/ai-world-podcast",
+    "createdAt": "2025-06-08T13:00:44.480Z"
+  },
+  {
+    "id": "2",
+    "title": "The Future of Work",
+    "description": "Exploring the rise of artificial intelligence",
+    "date": "May 20, 2025",
+    "time": "08:00 AM",
+    "thumbnail": "/images/future-work.jpg",
+    "podcastLink": "https://example.com/future-work-podcast",
+    "createdAt": "2025-06-08T13:00:44.480Z"
+  },
+  {
+    "id": "3",
+    "title": "Health and Wellness",
+    "description": "Tips and insights on wellness",
+    "date": "May 19, 2025",
+    "time": "02:50 PM",
+    "thumbnail": "/images/health.jpg",
+    "podcastLink": "https://example.com/health-podcast",
+    "createdAt": "2025-06-08T13:00:44.480Z"
+  },
+  {
+    "id": "4",
+    "title": "The Entrepreneurial Journey",
+    "description": "Deep insights from founders",
+    "date": "May 15, 2025",
+    "time": "11:00 AM",
+    "thumbnail": "/images/entrepreneur.jpg",
+    "podcastLink": "https://example.com/entrepreneur-podcast",
+    "createdAt": "2025-06-08T13:00:44.480Z"
+  },
+  {
+    "id": "5",
+    "title": "Exploring the Cosmos",
+    "description": "Space, telescopes, and wonder",
+    "date": "May 10, 2025",
+    "time": "04:00 PM",
+    "thumbnail": "/images/cosmos.jpg",
+    "podcastLink": "https://example.com/cosmos-podcast",
+    "createdAt": "2025-06-08T13:00:44.480Z"
+  },
+  {
+    "id": "6",
+    "title": "History's Greatest Mysteries",
+    "description": "Time travel through secrets",
+    "date": "May 5, 2025",
+    "time": "01:20 PM",
+    "thumbnail": "/images/mystery.jpg",
+    "podcastLink": "https://example.com/mystery-podcast",
+    "createdAt": "2025-06-08T13:00:44.480Z"
+  }
+]

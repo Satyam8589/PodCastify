@@ -66,12 +66,11 @@ export default function Home() {
       {/* Latest News */}
       <LatestNews />
 
-      {/* Newsletter */}
-      <Newsletter />
-
       {/* Latest Blogs */}
       <LatestBlogs />
-      
+
+      {/* Newsletter */}
+      <Newsletter />
 
       {/* Contact */}
       <section id="contact" className="max-w-5xl mx-auto px-4 py-12">
