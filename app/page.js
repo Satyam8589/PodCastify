@@ -63,11 +63,11 @@ export default function Home() {
       {/* About Section */}
       <About />
 
-      {/* Latest News */}
-      <LatestNews />
-
       {/* Latest Blogs */}
       <LatestBlogs />
+
+      {/* Latest News */}
+      <LatestNews />
 
       {/* Newsletter */}
       <Newsletter />

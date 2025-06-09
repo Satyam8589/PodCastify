@@ -84,6 +84,30 @@ const LatestBlogs = ({ posts }) => {
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
+  // Generate the correct URL for each post
+  const getPostUrl = (post) => {
+    // Debug: Log the post data to see what we're working with
+    console.log('Generating URL for post:', post);
+    
+    // Priority order: link > slug-based URL > _id-based URL > fallback to main blogs page
+    if (post.link && post.link !== '') {
+      return post.link;
+    }
+    
+    if (post.slug && post.slug !== '') {
+      return `/blogs/${post.slug}`;
+    }
+    
+    if (post._id && post._id !== '') {
+      return `/blogs/${post._id}`;
+    }
+    
+    // Don't use numeric IDs as they likely don't correspond to actual routes
+    // Instead, fallback to the main blogs page or handle differently
+    console.warn('Post missing valid URL identifiers, redirecting to blogs page:', post);
+    return '/blogs';
+  };
+
   return (
     <section className="px-4 md:px-12 lg:px-24 py-12 bg-gray-50">
       <div className="flex justify-between items-center mb-6">
@@ -115,65 +139,73 @@ const LatestBlogs = ({ posts }) => {
       ) : displayPosts.length > 0 ? (
         // Posts grid
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {displayPosts.map((post) => (
-            <div
-              key={post._id || post.id}
-              className="rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-300"
-            >
-              <div className="relative">
-                <Image
-                  src={post.image?.url || post.image}
-                  alt={post.title}
-                  width={400}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
-                {post.category && (
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.category)}`}>
-                      {post.category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="p-4">
-                <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                  {post.date && <span>{formatDate(post.date)}</span>}
-                  {post.readTime && (
-                    <>
-                      <span>•</span>
-                      <span>{post.readTime}</span>
-                    </>
+          {displayPosts.map((post) => {
+            const postUrl = getPostUrl(post);
+            const postKey = post._id || post.id || post.slug || Math.random();
+            
+            return (
+              <div
+                key={postKey}
+                className="rounded-2xl overflow-hidden shadow-md border border-gray-200 bg-white hover:shadow-lg transition-shadow duration-300"
+              >
+                <div className="relative">
+                  <Image
+                    src={post.image?.url || post.image || '/placeholder-blog.jpg'}
+                    alt={post.title || 'Blog post'}
+                    width={400}
+                    height={200}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.target.src = '/placeholder-blog.jpg';
+                    }}
+                  />
+                  {post.category && (
+                    <div className="absolute top-4 left-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.category)}`}>
+                        {post.category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                    </div>
                   )}
                 </div>
                 
-                <h3 className="text-lg font-semibold text-black mb-2 leading-tight">
-                  {post.title}
-                </h3>
-                
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                  {post.excerpt || post.description}
-                </p>
-                
-                {post.author && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                      {post.author.charAt(0)}
-                    </div>
-                    <span className="text-xs text-gray-600">{post.author}</span>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                    {post.date && <span>{formatDate(post.date)}</span>}
+                    {post.readTime && (
+                      <>
+                        <span>•</span>
+                        <span>{post.readTime}</span>
+                      </>
+                    )}
                   </div>
-                )}
-                
-                <Link
-                  href={post.link || `/blogs/${post.slug || post._id || post.id}`}
-                  className="text-[#5E5ADB] font-semibold text-sm hover:underline transition-colors duration-200"
-                >
-                  Read More →
-                </Link>
+                  
+                  <h3 className="text-lg font-semibold text-black mb-2 leading-tight">
+                    {post.title || 'Untitled Post'}
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                    {post.excerpt || post.description || 'No description available.'}
+                  </p>
+                  
+                  {post.author && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                        {post.author.charAt(0)}
+                      </div>
+                      <span className="text-xs text-gray-600">{post.author}</span>
+                    </div>
+                  )}
+                  
+                  <Link
+                    href={postUrl}
+                    className="inline-block text-[#5E5ADB] font-semibold text-sm hover:underline transition-colors duration-200"
+                  >
+                    Read More →
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         // No posts state
@@ -181,6 +213,9 @@ const LatestBlogs = ({ posts }) => {
           <div className="text-4xl mb-4">📝</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No blog posts yet</h3>
           <p className="text-gray-600">Check back soon for the latest updates!</p>
+          {error && (
+            <p className="text-red-600 text-sm mt-2">Error: {error}</p>
+          )}
         </div>
       )}
     </section>
