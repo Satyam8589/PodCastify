@@ -1,28 +1,31 @@
 [
   {
-    "_id": "17183b0b-be58-4d25-af87-39c34ac928f3",
-    "title": "The Rise of AI in Everyday Life",
-    "excerpt": "An insightful journey through how Artificial Intelligence is silently transforming your daily life.",
-    "content": "Artificial Intelligence (AI) is no longer just a buzzword in tech — it's the silent powerhouse reshaping everything around us. In this captivating episode of PodCastify, we sit down with developers, researchers, students, and everyday users to discuss how AI is seamlessly woven into the fabric of our lives.\r\n\r\nFrom the voice assistant that greets you in the morning, to the YouTube and Netflix recommendations that understand your preferences better than your friends — AI is here, and it’s smarter than ever.\r\n\r\nWe dive into:\r\n\r\nHow AI models like ChatGPT are helping people write, code, and even heal emotionally\r\n\r\nReal-life case studies of AI in education, healthcare, transportation, and media\r\n\r\nWhether AI will replace jobs or create new ones\r\n\r\nThe ethical debates surrounding facial recognition, surveillance, and AI-generated content\r\n\r\nHow to get started if you're a student or curious learner\r\n\r\nWhether you're an AI enthusiast or a curious skeptic, this episode is designed to both inform and inspire. We wrap up with tips on how you can stay ahead in an AI-first world.\r\n\r\n🔗 Listen to the full episode here: https://example.com/podcast-episode\r\n🎥 YouTube Companion Video: https://www.youtube.com/watch?v=2ePf9rue1Ao\r\n\r\nSubscribe for more episodes every week as we uncover the trends, stories, and people driving the future of tech.",
+    "_id": "fb7b2192-308c-4c4e-a03b-7297403bce9b",
+    "title": "Getting Started with React Native: A Beginner’s Guide to Building Your First Project",
+    "excerpt": "A beginner-friendly guide to help you start your journey with React Native and build your first mobile app with ease.",
+    "content": "<h2>Introduction</h2>\r\n<p>React Native is a popular open-source framework that allows you to build mobile apps using JavaScript and React. Whether you're a web developer or a complete beginner, React Native makes it easier than ever to create high-quality cross-platform applications.</p>\r\n\r\n<h2>Why Choose React Native?</h2>\r\n<ul>\r\n  <li><strong>Cross-Platform:</strong> One codebase for both Android and iOS.</li>\r\n  <li><strong>Community Support:</strong> A vibrant developer community and tons of libraries.</li>\r\n  <li><strong>Hot Reloading:</strong> See your changes in real-time without rebuilding.</li>\r\n</ul>\r\n\r\n<h3>Prerequisites</h3>\r\n<p>Before you get started, make sure you have the following installed:</p>\r\n<ol>\r\n  <li>Node.js and npm</li>\r\n  <li>Expo CLI (for easier development)</li>\r\n  <li>VS Code or any code editor</li>\r\n</ol>\r\n\r\n<h2>Step-by-Step Guide</h2>\r\n\r\n<h3>Step 1: Install Expo CLI</h3>\r\n<pre><code>npm install -g expo-cli</code></pre>\r\n\r\n<h3>Step 2: Create a New Project</h3>\r\n<pre><code>expo init MyFirstApp</code></pre>\r\n<p>Choose the <strong>blank template</strong> when prompted.</p>\r\n\r\n<h3>Step 3: Run the App</h3>\r\n<pre><code>cd MyFirstApp\r\nnpm start</code></pre>\r\n<p>This will launch a development server. You can now view your app on a phone using the Expo Go app.</p>\r\n\r\n<h2>Conclusion</h2>\r\n<p>React Native is a great way to get started in mobile development. With a few tools and some practice, you'll be building fully functional apps in no time. Stay tuned for more tutorials!</p>\r\n\r\n<p><strong>Watch this step-by-step video tutorial:</strong> <a href=\"https://www.youtube.com/watch?v=0-S5a0eXPoc\" target=\"_blank\">https://www.youtube.com/watch?v=0-S5a0eXPoc</a></p>",
     "category": "getting-started",
     "author": "Satyam kumar singh",
-    "date": "2025-06-08T23:47:00.000Z",
-    "time": "05:17",
-    "readTime": "5 min read",
-    "image": "/blog-images/1749422866561-4178ad91-afad-45c7-8fa6-b7c0a9bc97df-OIP (1).jpeg",
-    "tags": [],
-    "featured": false,
-    "createdAt": "2025-06-08T22:47:46.564Z"
+    "date": "2025-06-09T00:25:00.000Z",
+    "time": "05:55",
+    "readTime": "10 min read",
+    "image": "/blog-images/1749428730301-8a8b33fc-7873-4c30-a5dd-ef25ce397b8e-thumbnail-image-22-1024x717.webp",
+    "tags": [
+      "React Native, Mobile Development, JavaScript, Expo, Beginner Guide"
+    ],
+    "featured": true,
+    "createdAt": "2025-06-09T00:25:30.307Z",
+    "updatedAt": "2025-06-09T00:55:00.270Z"
   },
   {
     "_id": "1",
     "title": "Getting Started with Podcasting: A Complete Beginner's Guide",
     "excerpt": "Learn the fundamentals of podcasting, from choosing your niche to recording your first episode.",
     "content": "<h2>Welcome to the World of Podcasting</h2><p>Starting a podcast can seem overwhelming, but with the right guidance, anyone can create compelling audio content.</p>",
-    "category": "getting-started",
-    "author": "Sarah Johnson",
+    "category": "monetization",
+    "author": "Sarah",
     "date": "2024-03-15T09:30:00.000Z",
-    "time": "09:30 AM",
+    "time": "15:00",
     "readTime": "8 min read",
     "image": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
     "tags": [
@@ -32,6 +35,7 @@
       "publishing"
     ],
     "featured": true,
-    "createdAt": "2024-03-15T09:30:00.000Z"
+    "createdAt": "2024-03-15T09:30:00.000Z",
+    "updatedAt": "2025-06-09T00:37:28.523Z"
   }
 ]
