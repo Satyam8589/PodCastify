@@ -16,7 +16,8 @@ const page = () => {
           PodCastify <br /> ADMIN LOGIN ACTIVATED
         </h1>
         <p className="text-lg md:text-xl text-gray-300">
-          Everything is under control. <br /> Let's keep it that way!
+          Everything is under control. <br /> Let's keep it that way! <br />
+          Login Successful
         </p>
         <div className="mt-8">
           <span className="text-sm text-gray-400">
