@@ -51,7 +51,7 @@ const page = () => {
                 creative spirit, he bridges the gap between code, culture, and
                 creativity.
               </p>
-              <div className="flex gap-4 text-purple-600 text-lg mt-4">
+              <div className="flex gap-4 text-purple-600 text-lg mt-4 hover:text-purple-800 transition">
                 <a
                   href="https://www.linkedin.com/in/satyam-kumar-singh-00570828a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app"
                   aria-label="Linkedin"
