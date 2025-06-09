@@ -19,14 +19,6 @@ const Maintanance = () => {
           We're currently working on something awesome. <br /> Please check back
           later!
         </p>
-        <div className="mt-8">
-          <span className="text-sm text-gray-400">
-            Need help?{" "}
-            <a href="mailto:support@example.com" className="underline">
-              Contact Support
-            </a>
-          </span>
-        </div>
       </div>
     </div>
   );
