@@ -62,7 +62,7 @@ const page = () => {
                   <FaTwitter />
                 </a>
                 <a
-                  href="https://www.instagram.com/satyam._16?igsh=emozZGtub2w4cjJt"
+                  href="https://www.instagram.com/_satyam_._16?igsh=emozZGtub2w4cjJt"
                   aria-label="Instagram"
                 >
                   <FaInstagram />
