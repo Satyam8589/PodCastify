@@ -20,11 +20,14 @@ export const metadata = {
   description: "Meeting for knowledge sharing",
 };
 
+import { Toaster } from 'react-hot-toast';
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LayoutWrapper>{children}</LayoutWrapper>
+        <Toaster position="top-center" />
       </body>
     </html>
   );
