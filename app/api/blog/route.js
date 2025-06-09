@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { existsSync } from 'fs';
 import { connectToDatabase } from '@/lib/config/mongodb';
 import { ObjectId } from 'mongodb';
 
@@ -26,41 +25,40 @@ async function saveFile(file, folder = 'uploads') {
   }
 }
 
-// Helper function to check if request has form data
-function isFormDataRequest(request) {
-  const contentType = request.headers.get('content-type') || '';
-  return contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded');
-}
-
 // Helper function to parse request data (both JSON and FormData)
 async function parseRequestData(request) {
-  const contentType = request.headers.get('content-type') || '';
-  
-  if (contentType.includes('application/json')) {
-    return await request.json();
-  } else if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
-    const formData = await request.formData();
-    const data = {};
+  try {
+    const contentType = request.headers.get('content-type') || '';
     
-    for (const [key, value] of formData.entries()) {
-      if (key === 'tags' && typeof value === 'string') {
-        try {
-          data[key] = JSON.parse(value);
-        } catch (e) {
-          data[key] = [];
+    if (contentType.includes('application/json')) {
+      return await request.json();
+    } else if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await request.formData();
+      const data = {};
+      
+      for (const [key, value] of formData.entries()) {
+        if (key === 'tags' && typeof value === 'string') {
+          try {
+            data[key] = JSON.parse(value);
+          } catch (e) {
+            data[key] = [];
+          }
+        } else if (key === 'featured') {
+          data[key] = value === 'true';
+        } else if (value instanceof File) {
+          data[key] = value;
+        } else {
+          data[key] = value;
         }
-      } else if (key === 'featured') {
-        data[key] = value === 'true';
-      } else if (value instanceof File) {
-        data[key] = value;
-      } else {
-        data[key] = value;
       }
+      
+      return data;
+    } else {
+      throw new Error('Unsupported content type');
     }
-    
-    return data;
-  } else {
-    throw new Error('Unsupported content type');
+  } catch (error) {
+    console.error('Error parsing request data:', error);
+    throw error;
   }
 }
 
@@ -95,13 +93,28 @@ async function initializeBlogData() {
     }
   } catch (error) {
     console.error('Error initializing blog data:', error);
+    throw error;
   }
+}
+
+// Validate ObjectId
+function isValidObjectId(id) {
+  return ObjectId.isValid(id);
 }
 
 // GET - Fetch blog posts
 export async function GET(request) {
   try {
     console.log('Blog API GET called');
+    
+    // Ensure environment variable exists
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI not found in environment variables');
+      return NextResponse.json(
+        { success: false, error: 'Database configuration error' },
+        { status: 500 }
+      );
+    }
     
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
@@ -119,11 +132,11 @@ export async function GET(request) {
     if (id) {
       let post;
       
-      // Try to find by ObjectId first, then by string ID
-      try {
+      // Validate and find by ObjectId
+      if (isValidObjectId(id)) {
         post = await collection.findOne({ _id: new ObjectId(id) });
-      } catch (error) {
-        // If ObjectId conversion fails, try finding by string ID
+      } else {
+        // Try finding by string ID as fallback
         post = await collection.findOne({ _id: id });
       }
       
@@ -187,6 +200,15 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     console.log('Blog API POST called');
+
+    // Ensure environment variable exists
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI not found in environment variables');
+      return NextResponse.json(
+        { success: false, error: 'Database configuration error' },
+        { status: 500 }
+      );
+    }
 
     const data = await parseRequestData(request);
     
@@ -276,6 +298,15 @@ export async function PUT(request) {
   try {
     console.log('Blog API PUT called');
 
+    // Ensure environment variable exists
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI not found in environment variables');
+      return NextResponse.json(
+        { success: false, error: 'Database configuration error' },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -317,10 +348,10 @@ export async function PUT(request) {
 
     // Find existing post
     let existingPost;
-    try {
+    if (isValidObjectId(id)) {
       existingPost = await collection.findOne({ _id: new ObjectId(id) });
-    } catch (error) {
-      // If ObjectId conversion fails, try finding by string ID
+    } else {
+      // Try finding by string ID as fallback
       existingPost = await collection.findOne({ _id: id });
     }
 
@@ -396,6 +427,17 @@ export async function PUT(request) {
 // DELETE - Delete blog post
 export async function DELETE(request) {
   try {
+    console.log('Blog API DELETE called');
+
+    // Ensure environment variable exists
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI not found in environment variables');
+      return NextResponse.json(
+        { success: false, error: 'Database configuration error' },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -411,10 +453,10 @@ export async function DELETE(request) {
 
     // Delete the post
     let result;
-    try {
+    if (isValidObjectId(id)) {
       result = await collection.deleteOne({ _id: new ObjectId(id) });
-    } catch (error) {
-      // If ObjectId conversion fails, try deleting by string ID
+    } else {
+      // Try deleting by string ID as fallback
       result = await collection.deleteOne({ _id: id });
     }
 
