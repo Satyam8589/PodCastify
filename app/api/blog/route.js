@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Conditional imports to handle missing dependencies gracefully
 let connectToDatabase, ObjectId;
@@ -16,22 +21,47 @@ try {
 let memoryStore = [];
 let isInitialized = false;
 
-// Helper function to save uploaded files
-async function saveFile(file, folder = 'uploads') {
+// Helper function to upload image to Cloudinary
+async function uploadToCloudinary(file) {
   try {
-    const uploadDir = join(process.cwd(), 'public', folder);
-    await mkdir(uploadDir, { recursive: true });
-
-    const fileName = `${Date.now()}-${uuidv4()}-${file.name}`;
-    const filePath = join(uploadDir, fileName);
+    console.log('Starting Cloudinary upload...');
+    console.log('Cloudinary config check:', {
+      cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: !!process.env.CLOUDINARY_API_KEY,
+      api_secret: !!process.env.CLOUDINARY_API_SECRET
+    });
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
-
-    return `/${folder}/${fileName}`;
+    
+    console.log('File buffer size:', buffer.length);
+    
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'image',
+          folder: 'blog-images',
+          transformation: [
+            { width: 1000, height: 600, crop: 'fill' },
+            { quality: 'auto' }
+          ]
+        },
+        (error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            console.log('Cloudinary upload success:', {
+              url: result.secure_url,
+              public_id: result.public_id
+            });
+            resolve(result.secure_url);
+          }
+        }
+      ).end(buffer);
+    });
   } catch (error) {
-    console.error('Error saving file:', error);
+    console.error('Error uploading to Cloudinary:', error);
     return null;
   }
 }
@@ -321,10 +351,19 @@ export async function POST(request) {
     let imageUrl = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
     
     if (thumbnail && thumbnail instanceof File && thumbnail.size > 0) {
-      const uploadedPath = await saveFile(thumbnail, 'blog-images');
-      if (uploadedPath) {
-        imageUrl = uploadedPath;
+      console.log('Uploading image to Cloudinary...');
+      console.log('File name:', thumbnail.name);
+      console.log('File size:', thumbnail.size);
+      
+      const uploadedUrl = await uploadToCloudinary(thumbnail);
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
+        console.log('Image uploaded successfully:', imageUrl);
+      } else {
+        console.log('Image upload failed, using default image');
       }
+    } else {
+      console.log('No thumbnail file provided or file is empty');
     }
 
     // Create new blog post
@@ -344,6 +383,12 @@ export async function POST(request) {
       updatedAt: new Date()
     };
 
+    console.log('New post data before saving:', {
+      title: newPost.title,
+      image: newPost.image,
+      author: newPost.author
+    });
+
     // Try MongoDB first
     if (connectToDatabase && process.env.MONGODB_URI) {
       try {
@@ -355,6 +400,13 @@ export async function POST(request) {
           ...newPost,
           _id: result.insertedId
         };
+
+        console.log('Blog post saved to MongoDB with image:', createdPost.image);
+        console.log('MongoDB insert result:', result.insertedId);
+
+        // Verify the data was saved correctly
+        const savedPost = await collection.findOne({ _id: result.insertedId });
+        console.log('Verification - Retrieved post image:', savedPost?.image);
 
         console.log('New blog post created in MongoDB:', createdPost.title);
 
@@ -461,9 +513,11 @@ export async function PUT(request) {
         let imageUrl = existingPost.image;
         
         if (!keepCurrentImage && thumbnail && thumbnail instanceof File && thumbnail.size > 0) {
-          const uploadedPath = await saveFile(thumbnail, 'blog-images');
-          if (uploadedPath) {
-            imageUrl = uploadedPath;
+          console.log('Uploading new image to Cloudinary...');
+          const uploadedUrl = await uploadToCloudinary(thumbnail);
+          if (uploadedUrl) {
+            imageUrl = uploadedUrl;
+            console.log('Image updated successfully:', imageUrl);
           }
         }
 
@@ -523,9 +577,9 @@ export async function PUT(request) {
     let imageUrl = existingPost.image;
     
     if (!keepCurrentImage && thumbnail && thumbnail instanceof File && thumbnail.size > 0) {
-      const uploadedPath = await saveFile(thumbnail, 'blog-images');
-      if (uploadedPath) {
-        imageUrl = uploadedPath;
+      const uploadedUrl = await uploadToCloudinary(thumbnail);
+      if (uploadedUrl) {
+        imageUrl = uploadedUrl;
       }
     }
 
