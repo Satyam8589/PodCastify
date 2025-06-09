@@ -1,5 +1,23 @@
 [
   {
+    "_id": "6b0069d9-16bc-415a-8dbd-d983a927af27",
+    "title": "Introducing Sora by OpenAI: The Future of AI Video Generation",
+    "excerpt": "Discover how OpenAI’s new model, Sora, is revolutionizing video generation using artificial intelligence and what it means for creators and developers.",
+    "content": "<h2>What is Sora?</h2>\r\n<p><strong>Sora</strong> is the latest breakthrough from OpenAI — an AI model capable of generating highly realistic and creative videos from simple text prompts. Whether you're a filmmaker, game designer, educator, or just a curious tech enthusiast, Sora opens up endless possibilities for content creation.</p>\r\n\r\n<h2>Key Features of Sora</h2>\r\n<ul>\r\n  <li><strong>Text-to-Video Generation:</strong> Turn written prompts into dynamic, high-resolution videos.</li>\r\n  <li><strong>Scene Control:</strong> Control actors, camera movements, environment details, and more.</li>\r\n  <li><strong>Creative Freedom:</strong> Generate fictional scenes, realistic clips, or artistic animations effortlessly.</li>\r\n</ul>\r\n\r\n<h2>How Does It Work?</h2>\r\n<p>Sora is trained on a wide range of video and image data, allowing it to understand complex real-world physics, motion, and visual styles. The model can generate coherent videos up to one minute long, maintaining consistency in characters, scenes, and lighting.</p>\r\n\r\n<h3>Example Prompt:</h3>\r\n<pre><code>\"A panda riding a bicycle through a city street, at sunset, in cinematic style\"</code></pre>\r\n<p>Sora will turn this into a realistic or stylized video, depending on your settings.</p>\r\n\r\n<h2>Why It Matters</h2>\r\n<p>For creators, Sora reduces the cost and time associated with video production. For developers, it opens up new frontiers in gaming, simulations, storytelling, and marketing. For everyone else, it's a glimpse into the future where imagination meets instant creation.</p>\r\n\r\n<h2>Getting Started with Sora</h2>\r\n<ol>\r\n  <li>Join the OpenAI waitlist for early access to Sora.</li>\r\n  <li>Explore example videos and prompt templates provided by OpenAI.</li>\r\n  <li>Experiment with generating your own videos using descriptive prompts.</li>\r\n</ol>\r\n\r\n<h2>Conclusion</h2>\r\n<p><strong>Sora</strong> is more than just a tool — it's a revolution in how we think about visual storytelling and artificial intelligence. Stay tuned for more updates as Sora becomes available to the public.</p>\r\n\r\n<p><strong>Watch the official demo video here:</strong> <a href=\"https://www.youtube.com/watch?v=F5tH4xDkZNw\" target=\"_blank\">https://www.youtube.com/watch?v=F5tH4xDkZNw</a></p>",
+    "category": "getting-started",
+    "author": "Satyam kumar singh",
+    "date": "2025-06-09T07:26:00.000Z",
+    "time": "12:56",
+    "readTime": "7 min read",
+    "image": "/blog-images/1749454021620-ec40cbc4-580b-4324-b4c1-8db79e7e1d1f-OIP (2).jpeg",
+    "tags": [
+      "AI, OpenAI, Sora, Video Generation, Tech Innovation, Artificial Intelligence"
+    ],
+    "featured": false,
+    "createdAt": "2025-06-09T07:27:01.623Z",
+    "updatedAt": "2025-06-09T07:27:01.623Z"
+  },
+  {
     "_id": "fb7b2192-308c-4c4e-a03b-7297403bce9b",
     "title": "Getting Started with React Native: A Beginner’s Guide to Building Your First Project",
     "excerpt": "A beginner-friendly guide to help you start your journey with React Native and build your first mobile app with ease.",

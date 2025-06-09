@@ -1,73 +1,10 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir, readFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { existsSync } from 'fs';
-
-// Path to store blog posts
-const BLOG_DATA_PATH = join(process.cwd(), 'data', 'blog-posts.json');
-
-// Initialize blog data file if it doesn't exist
-async function initializeBlogData() {
-  try {
-    const dataDir = join(process.cwd(), 'data');
-    
-    // Create data directory if it doesn't exist
-    if (!existsSync(dataDir)) {
-      await mkdir(dataDir, { recursive: true });
-    }
-    
-    // Create blog data file with initial data if it doesn't exist
-    if (!existsSync(BLOG_DATA_PATH)) {
-      const initialData = [
-        {
-          _id: '1',
-          title: 'Getting Started with Podcasting: A Complete Beginner\'s Guide',
-          excerpt: 'Learn the fundamentals of podcasting, from choosing your niche to recording your first episode.',
-          content: '<h2>Welcome to the World of Podcasting</h2><p>Starting a podcast can seem overwhelming, but with the right guidance, anyone can create compelling audio content.</p>',
-          category: 'getting-started',
-          author: 'Sarah Johnson',
-          date: '2024-03-15T09:30:00.000Z',
-          time: '09:30 AM',
-          readTime: '8 min read',
-          image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-          tags: ['beginner', 'equipment', 'recording', 'publishing'],
-          featured: true,
-          createdAt: '2024-03-15T09:30:00.000Z',
-          updatedAt: '2024-03-15T09:30:00.000Z'
-        }
-      ];
-      
-      await writeFile(BLOG_DATA_PATH, JSON.stringify(initialData, null, 2));
-      console.log('Blog data file initialized');
-    }
-  } catch (error) {
-    console.error('Error initializing blog data:', error);
-  }
-}
-
-// Read blog posts from file
-async function readBlogPosts() {
-  try {
-    await initializeBlogData();
-    const data = await readFile(BLOG_DATA_PATH, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading blog posts:', error);
-    return [];
-  }
-}
-
-// Write blog posts to file
-async function writeBlogPosts(posts) {
-  try {
-    await writeFile(BLOG_DATA_PATH, JSON.stringify(posts, null, 2));
-    console.log('Blog posts saved to file');
-  } catch (error) {
-    console.error('Error writing blog posts:', error);
-    throw error;
-  }
-}
+import { connectToDatabase } from '@/lib/config/mongodb';
+import { ObjectId } from 'mongodb';
 
 // Helper function to save uploaded files
 async function saveFile(file, folder = 'uploads') {
@@ -127,6 +64,40 @@ async function parseRequestData(request) {
   }
 }
 
+// Initialize database with sample data
+async function initializeBlogData() {
+  try {
+    const { db } = await connectToDatabase();
+    const collection = db.collection('blogPosts');
+    
+    // Check if collection is empty
+    const count = await collection.countDocuments();
+    
+    if (count === 0) {
+      const initialData = {
+        title: 'Getting Started with Podcasting: A Complete Beginner\'s Guide',
+        excerpt: 'Learn the fundamentals of podcasting, from choosing your niche to recording your first episode.',
+        content: '<h2>Welcome to the World of Podcasting</h2><p>Starting a podcast can seem overwhelming, but with the right guidance, anyone can create compelling audio content.</p><p>This comprehensive guide will walk you through everything you need to know to launch your first podcast episode.</p><h3>Choosing Your Niche</h3><p>The first step in creating a successful podcast is identifying your niche. Consider your passions, expertise, and what unique perspective you can bring to your audience.</p><h3>Essential Equipment</h3><p>You don\'t need expensive equipment to start. A good USB microphone, headphones, and recording software like Audacity (free) or GarageBand are sufficient for beginners.</p><h3>Recording Your First Episode</h3><p>Plan your content, create an outline, and practice speaking clearly. Remember, your first episode doesn\'t have to be perfect – it just needs to be authentic and valuable to your audience.</p>',
+        category: 'getting-started',
+        author: 'Sarah Johnson',
+        date: new Date('2024-03-15T09:30:00.000Z'),
+        time: '09:30 AM',
+        readTime: '8 min read',
+        image: 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+        tags: ['beginner', 'equipment', 'recording', 'publishing'],
+        featured: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      await collection.insertOne(initialData);
+      console.log('Blog collection initialized with sample data');
+    }
+  } catch (error) {
+    console.error('Error initializing blog data:', error);
+  }
+}
+
 // GET - Fetch blog posts
 export async function GET(request) {
   try {
@@ -138,11 +109,24 @@ export async function GET(request) {
     const featured = searchParams.get('featured');
     const id = searchParams.get('id');
 
-    let posts = await readBlogPosts();
+    const { db } = await connectToDatabase();
+    const collection = db.collection('blogPosts');
     
+    // Initialize if needed
+    await initializeBlogData();
+
     // If requesting a specific post by ID
     if (id) {
-      const post = posts.find(p => p._id === id);
+      let post;
+      
+      // Try to find by ObjectId first, then by string ID
+      try {
+        post = await collection.findOne({ _id: new ObjectId(id) });
+      } catch (error) {
+        // If ObjectId conversion fails, try finding by string ID
+        post = await collection.findOne({ _id: id });
+      }
+      
       if (!post) {
         return NextResponse.json(
           { success: false, error: 'Post not found' },
@@ -154,29 +138,35 @@ export async function GET(request) {
         data: post
       });
     }
+
+    // Build query for filtering
+    let query = {};
     
     // Apply filters
     if (category && category !== 'all') {
-      posts = posts.filter(post => post.category === category);
-    }
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      posts = posts.filter(post => 
-        post.title.toLowerCase().includes(searchLower) ||
-        post.excerpt.toLowerCase().includes(searchLower) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      );
+      query.category = category;
     }
 
     if (featured === 'true') {
-      posts = posts.filter(post => post.featured === true);
+      query.featured = true;
     }
 
-    // Sort posts by date (newest first)
-    posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [
+        { title: searchRegex },
+        { excerpt: searchRegex },
+        { tags: { $in: [searchRegex] } }
+      ];
+    }
 
-    console.log(`Returning ${posts.length} posts from file storage`);
+    // Fetch posts with sorting (newest first)
+    const posts = await collection
+      .find(query)
+      .sort({ date: -1 })
+      .toArray();
+
+    console.log(`Returning ${posts.length} posts from MongoDB`);
 
     return NextResponse.json({
       success: true,
@@ -235,35 +225,38 @@ export async function POST(request) {
 
     // Create new blog post
     const newPost = {
-      _id: uuidv4(),
       title: title.trim(),
       excerpt: excerpt.trim(),
       content: content.trim(),
       category: category || 'getting-started',
       author: author.trim(),
-      date: new Date(date + 'T' + time).toISOString(),
+      date: new Date(date + 'T' + time),
       time: time,
       readTime: readTime.trim(),
       image: imageUrl,
       tags: Array.isArray(tags) ? tags : [],
       featured: Boolean(featured),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
-    // Read existing posts and add new one
-    const existingPosts = await readBlogPosts();
-    const updatedPosts = [newPost, ...existingPosts];
-    
-    // Save to file
-    await writeBlogPosts(updatedPosts);
+    // Insert into MongoDB
+    const { db } = await connectToDatabase();
+    const collection = db.collection('blogPosts');
+    const result = await collection.insertOne(newPost);
 
-    console.log('New blog post created and saved:', newPost.title);
+    // Add the generated _id to the response
+    const createdPost = {
+      ...newPost,
+      _id: result.insertedId
+    };
+
+    console.log('New blog post created in MongoDB:', createdPost.title);
 
     return NextResponse.json({
       success: true,
       message: 'Blog post published successfully!',
-      data: newPost
+      data: createdPost
     });
 
   } catch (error) {
@@ -319,18 +312,24 @@ export async function PUT(request) {
       );
     }
 
-    // Read existing posts
-    const posts = await readBlogPosts();
-    const existingPostIndex = posts.findIndex(post => post._id === id);
+    const { db } = await connectToDatabase();
+    const collection = db.collection('blogPosts');
 
-    if (existingPostIndex === -1) {
+    // Find existing post
+    let existingPost;
+    try {
+      existingPost = await collection.findOne({ _id: new ObjectId(id) });
+    } catch (error) {
+      // If ObjectId conversion fails, try finding by string ID
+      existingPost = await collection.findOne({ _id: id });
+    }
+
+    if (!existingPost) {
       return NextResponse.json(
         { success: false, error: 'Post not found' },
         { status: 404 }
       );
     }
-
-    const existingPost = posts[existingPostIndex];
 
     // Handle thumbnail upload
     let imageUrl = existingPost.image; // Keep existing image by default
@@ -342,30 +341,39 @@ export async function PUT(request) {
       }
     }
 
-    // Update the post
-    const updatedPost = {
-      ...existingPost,
+    // Prepare update data
+    const updateData = {
       title: title.trim(),
       excerpt: excerpt.trim(),
       content: content.trim(),
       category: category || 'getting-started',
       author: author.trim(),
-      date: new Date(date + 'T' + time).toISOString(),
+      date: new Date(date + 'T' + time),
       time: time,
       readTime: readTime.trim(),
       image: imageUrl,
       tags: Array.isArray(tags) ? tags : [],
       featured: Boolean(featured),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date()
     };
 
-    // Replace the post in the array
-    posts[existingPostIndex] = updatedPost;
-    
-    // Save to file
-    await writeBlogPosts(posts);
+    // Update the post in MongoDB
+    const result = await collection.updateOne(
+      { _id: existingPost._id },
+      { $set: updateData }
+    );
 
-    console.log('Blog post updated:', updatedPost.title);
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Post not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get the updated post
+    const updatedPost = await collection.findOne({ _id: existingPost._id });
+
+    console.log('Blog post updated in MongoDB:', updatedPost.title);
 
     return NextResponse.json({
       success: true,
@@ -398,20 +406,26 @@ export async function DELETE(request) {
       );
     }
 
-    const posts = await readBlogPosts();
-    const initialLength = posts.length;
-    const updatedPosts = posts.filter(post => post._id !== id);
+    const { db } = await connectToDatabase();
+    const collection = db.collection('blogPosts');
 
-    if (updatedPosts.length === initialLength) {
+    // Delete the post
+    let result;
+    try {
+      result = await collection.deleteOne({ _id: new ObjectId(id) });
+    } catch (error) {
+      // If ObjectId conversion fails, try deleting by string ID
+      result = await collection.deleteOne({ _id: id });
+    }
+
+    if (result.deletedCount === 0) {
       return NextResponse.json(
         { success: false, error: 'Post not found' },
         { status: 404 }
       );
     }
 
-    await writeBlogPosts(updatedPosts);
-
-    console.log('Blog post deleted, ID:', id);
+    console.log('Blog post deleted from MongoDB, ID:', id);
 
     return NextResponse.json({
       success: true,
