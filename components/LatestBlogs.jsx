@@ -12,7 +12,20 @@ const LatestBlogs = ({ posts }) => {
   const fetchLatestPosts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/blog?limit=3&sort=latest');
+      
+      // Use absolute URL for Vercel deployment
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      
+      const response = await fetch(`${baseUrl}/api/blog?limit=3&sort=latest`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add cache control for better reliability
+        cache: 'no-cache'
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -67,8 +80,12 @@ const LatestBlogs = ({ posts }) => {
 
   // Format date function (same as PodcastBlog)
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    try {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   // Get category color function (same as PodcastBlog)
@@ -84,28 +101,60 @@ const LatestBlogs = ({ posts }) => {
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
 
-  // Generate the correct URL for each post
+  // Generate the correct URL for each post - FIXED VERSION
   const getPostUrl = (post) => {
     // Debug: Log the post data to see what we're working with
     console.log('Generating URL for post:', post);
     
-    // Priority order: link > slug-based URL > _id-based URL > fallback to main blogs page
-    if (post.link && post.link !== '') {
+    // Priority order: 
+    // 1. Use direct link if provided and valid
+    if (post.link && post.link.trim() !== '' && post.link.startsWith('/')) {
       return post.link;
     }
     
-    if (post.slug && post.slug !== '') {
-      return `/blogs/${post.slug}`;
+    // 2. Use slug if available (most reliable for dynamic routing)
+    if (post.slug && post.slug.trim() !== '') {
+      return `/blogs/${encodeURIComponent(post.slug)}`;
     }
     
-    if (post._id && post._id !== '') {
-      return `/blogs/${post._id}`;
+    // 3. Use _id if available (MongoDB ObjectId or similar)
+    if (post._id && post._id.trim() !== '') {
+      return `/blogs/${encodeURIComponent(post._id)}`;
     }
     
-    // Don't use numeric IDs as they likely don't correspond to actual routes
-    // Instead, fallback to the main blogs page or handle differently
+    // 4. Use id if available (fallback)
+    if (post.id && post.id.toString().trim() !== '') {
+      return `/blogs/${encodeURIComponent(post.id)}`;
+    }
+    
+    // 5. Last resort - use title as slug
+    if (post.title && post.title.trim() !== '') {
+      const titleSlug = post.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return `/blogs/${encodeURIComponent(titleSlug)}`;
+    }
+    
+    // Final fallback to blogs page
     console.warn('Post missing valid URL identifiers, redirecting to blogs page:', post);
     return '/blogs';
+  };
+
+  // Handle click with error handling
+  const handlePostClick = (e, post) => {
+    const url = getPostUrl(post);
+    
+    // If URL is just '/blogs', prevent default and handle gracefully
+    if (url === '/blogs') {
+      e.preventDefault();
+      console.warn('Invalid post URL, staying on blogs page');
+      // Optionally show a toast or alert
+      if (typeof window !== 'undefined') {
+        alert('This post is not available. Please try again later.');
+      }
+      return false;
+    }
   };
 
   return (
@@ -141,7 +190,7 @@ const LatestBlogs = ({ posts }) => {
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {displayPosts.map((post) => {
             const postUrl = getPostUrl(post);
-            const postKey = post._id || post.id || post.slug || Math.random();
+            const postKey = post._id || post.id || post.slug || `post-${Math.random()}`;
             
             return (
               <div
@@ -198,6 +247,7 @@ const LatestBlogs = ({ posts }) => {
                   
                   <Link
                     href={postUrl}
+                    onClick={(e) => handlePostClick(e, post)}
                     className="inline-block text-[#5E5ADB] font-semibold text-sm hover:underline transition-colors duration-200"
                   >
                     Read More →

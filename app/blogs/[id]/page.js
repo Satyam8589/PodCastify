@@ -1,20 +1,38 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import BlogImage from './BlogImage'; // Import from separate file
 
-// Fetch blog post data
+// Fetch blog post data with better error handling
 async function getBlogPost(id) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/blog?id=${id}`, {
-      cache: 'no-store' // Ensure fresh data
+    // Use absolute URL for Vercel deployment
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                   'http://localhost:3000';
+    
+    console.log(`Fetching blog post from: ${baseUrl}/api/blog?id=${id}`);
+    
+    const response = await fetch(`${baseUrl}/api/blog?id=${encodeURIComponent(id)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store', // Ensure fresh data
+      // Add timeout for Vercel
+      signal: AbortSignal.timeout(10000) // 10 second timeout
     });
     
+    console.log(`Response status: ${response.status}`);
+    
     if (!response.ok) {
+      console.error(`Failed to fetch blog post: ${response.status} ${response.statusText}`);
       return null;
     }
     
     const result = await response.json();
+    console.log('API Response:', result);
+    
     return result.success ? result.data : null;
   } catch (error) {
     console.error('Error fetching blog post:', error);
@@ -22,23 +40,56 @@ async function getBlogPost(id) {
   }
 }
 
-// Generate metadata for SEO (optional but recommended)
+// Generate static params for better Vercel deployment (optional)
+export async function generateStaticParams() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                   'http://localhost:3000';
+    
+    const response = await fetch(`${baseUrl}/api/blog`);
+    
+    if (!response.ok) {
+      return [];
+    }
+    
+    const result = await response.json();
+    const posts = result.success ? result.data : [];
+    
+    return posts.map((post) => ({
+      id: post.slug || post._id || post.id?.toString() || '',
+    })).filter(param => param.id !== '');
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
+}
+
+// Generate metadata for SEO with better error handling
 export async function generateMetadata({ params }) {
   const post = await getBlogPost(params.id);
   
   if (!post) {
     return {
-      title: 'Post Not Found'
+      title: 'Post Not Found',
+      description: 'The requested blog post could not be found.',
     };
   }
   
   return {
-    title: post.title,
-    description: post.excerpt,
+    title: post.title || 'Blog Post',
+    description: post.excerpt || post.description || 'Read this blog post',
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      images: [post.image],
+      title: post.title || 'Blog Post',
+      description: post.excerpt || post.description || 'Read this blog post',
+      images: post.image ? [{ url: post.image }] : [],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title || 'Blog Post',
+      description: post.excerpt || post.description || 'Read this blog post',
+      images: post.image ? [post.image] : [],
     },
   };
 }
@@ -56,17 +107,28 @@ function getCategoryColor(category) {
   return colors[category] || 'bg-gray-100 text-gray-800';
 }
 
-// Format date function
+// Format date function with error handling
 function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString(undefined, options);
+  try {
+    if (!dateString) return 'No date';
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
 }
 
-// Main page component
+// Main page component with better error handling
 export default async function BlogPostPage({ params }) {
-  const post = await getBlogPost(params.id);
+  // Decode the ID parameter to handle URL encoding
+  const decodedId = decodeURIComponent(params.id);
+  console.log(`Blog post page requested for ID: ${decodedId}`);
+  
+  const post = await getBlogPost(decodedId);
   
   if (!post) {
+    console.log(`Blog post not found for ID: ${decodedId}`);
     notFound();
   }
   
@@ -77,9 +139,22 @@ export default async function BlogPostPage({ params }) {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Link 
             href="/blogs" 
-            className="text-[#5E5ADB] hover:underline font-medium"
+            className="text-[#5E5ADB] hover:underline font-medium inline-flex items-center gap-2"
           >
-            ← Back to Blogs
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+              />
+            </svg>
+            Back to Blogs
           </Link>
         </div>
       </div>
@@ -99,7 +174,7 @@ export default async function BlogPostPage({ params }) {
           
           {/* Title */}
           <h1 className="text-3xl md:text-4xl font-bold text-[#1C1C24] mb-4 leading-tight">
-            {post.title}
+            {post.title || 'Untitled Post'}
           </h1>
           
           {/* Meta Information */}
@@ -107,7 +182,7 @@ export default async function BlogPostPage({ params }) {
             {post.author && (
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                  {post.author.charAt(0)}
+                  {post.author.charAt(0).toUpperCase()}
                 </div>
                 <span className="font-medium">{post.author}</span>
               </div>
@@ -139,27 +214,31 @@ export default async function BlogPostPage({ params }) {
         {/* Featured Image */}
         {post.image && (
           <div className="mb-8">
-            <Image
+            <BlogImage
               src={post.image}
-              alt={post.title}
-              width={800}
-              height={400}
+              alt={post.title || 'Blog post image'}
               className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-              priority
+              priority={true}
             />
           </div>
         )}
         
         {/* Content */}
         <div className="prose prose-lg max-w-none">
-          <div 
-            dangerouslySetInnerHTML={{ __html: post.content }}
-            className="text-gray-800 leading-relaxed"
-          />
+          {post.content ? (
+            <div 
+              dangerouslySetInnerHTML={{ __html: post.content }}
+              className="text-gray-800 leading-relaxed"
+            />
+          ) : (
+            <div className="text-gray-600 italic">
+              No content available for this post.
+            </div>
+          )}
         </div>
         
         {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
+        {post.tags && Array.isArray(post.tags) && post.tags.length > 0 && (
           <div className="mt-8 pt-8 border-t border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
             <div className="flex flex-wrap gap-2">
@@ -180,9 +259,22 @@ export default async function BlogPostPage({ params }) {
           <div className="flex justify-between items-center">
             <Link 
               href="/blogs" 
-              className="text-[#5E5ADB] hover:underline font-medium"
+              className="text-[#5E5ADB] hover:underline font-medium inline-flex items-center gap-2"
             >
-              ← All Posts
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+                />
+              </svg>
+              All Posts
             </Link>
             
             <div className="text-sm text-gray-500">
