@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🎧 PodCastify
 
-## Getting Started
+![PodCastify Banner](https://raw.githubusercontent.com/Satyam8589/PodCastify/refs/heads/master/Screenshot%202025-08-05%20182756.png) <!-- Update the path if needed -->
 
-First, run the development server:
+PodCastify is a podcast streaming web application that allows users to explore and listen to podcasts, read blogs, and stay updated with news — all in one place. Built with **Next.js**, **Tailwind CSS**, and **Firebase**, this platform is designed for speed, security, and scalability.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- 🎙️ Stream and browse various podcasts
+- 📰 Read curated blogs and news content
+- 🔐 Secure and separate **Admin Panel** for content management
+- 🔍 Search and discover new content
+- 🧠 Clean and responsive UI with Tailwind CSS
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend:** Next.js (App Router), Tailwind CSS
+- **Backend/Auth:** Firebase (Firestore & Auth)
+- **Styling:** Tailwind CSS
+- **Routing & Middleware:** Next.js middleware for admin protection
 
-## Learn More
+## 🔐 Admin Panel
 
-To learn more about Next.js, take a look at the following resources:
+The app includes a secure `/admin` route accessible only to authenticated admins via Firebase. Admins can:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Add or manage podcasts
+- Post blogs and news
+- Monitor uploads and users (if extended)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Folder Structure (Important)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
