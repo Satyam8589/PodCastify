@@ -29,3 +29,17 @@ The app includes a secure `/admin` route accessible only to authenticated admins
 
 ## 📁 Folder Structure (Important)
 
+PodCastify/
+├── app/
+│ ├── admin/ → Protected admin panel
+│ ├── blogs/ → Blogs section
+│ ├── podcast/ → Podcast pages
+│ ├── news/ → News section
+├── components/ → Reusable React components
+├── data/ → JSON/static data
+├── public/ → Public assets (images/icons)
+├── firebaseConfig.js → Firebase config file
+├── middleware.js → Protects admin route
+
+
+© 2025 PodCastify – All rights reserved.
