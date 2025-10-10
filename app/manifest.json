@@ -1,21 +1,62 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "PodCastify - Your Podcast Streaming Platform",
+  "short_name": "PodCastify",
+  "description": "Stream podcasts, read blogs, and discover advertisements in one place",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#7C3AED",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait-primary",
+  "categories": ["entertainment", "news", "education"],
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     },
     {
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-96x96.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  "shortcuts": [
+    {
+      "name": "Podcasts",
+      "short_name": "Podcasts",
+      "description": "Browse and listen to podcasts",
+      "url": "/podcast",
+      "icons": [{ "src": "/favicon-96x96.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Blogs",
+      "short_name": "Blogs",
+      "description": "Read latest blog posts",
+      "url": "/blogs",
+      "icons": [{ "src": "/favicon-96x96.jpg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Advertisements",
+      "short_name": "Ads",
+      "description": "Browse featured advertisements",
+      "url": "/news",
+      "icons": [{ "src": "/favicon-96x96.jpg", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "platform": "wide"
+    }
+  ]
 }

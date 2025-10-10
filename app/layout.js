@@ -4,6 +4,7 @@ import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import PWAFeatures from "@/components/PWAFeatures";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,17 +17,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ProdCast: Your Podcast Companion",
-  description: "Meeting for knowledge sharing",
+  title: "PodCastify: Your Podcast Streaming Platform",
+  description:
+    "Stream podcasts, read blogs, and discover advertisements in one place",
+  manifest: "/manifest.json",
+  themeColor: "#7C3AED",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PodCastify",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <LayoutWrapper>{children}</LayoutWrapper>
+        <PWAFeatures />
         <Toaster position="top-center" />
       </body>
     </html>

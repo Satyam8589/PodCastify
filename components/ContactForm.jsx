@@ -1,8 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mail, Phone, MapPin, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
 import { FaFacebookF, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa";
+import { useOfflineForm } from "@/hooks/useOfflineForm";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -12,8 +20,10 @@ const Contact = () => {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', or null
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', 'queued', or null
   const [errorMessage, setErrorMessage] = useState("");
+
+  const { isOnline, submitForm, hasQueuedSubmissions } = useOfflineForm();
 
   const handleChange = (e) => {
     setFormData({
@@ -29,18 +39,15 @@ const Contact = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const result = await submitForm(formData, "/api/contact");
 
-      const data = await response.json();
-
-      if (data.success) {
-        setSubmitStatus("success");
+      if (result.success) {
+        if (result.queued) {
+          setSubmitStatus("queued");
+          setErrorMessage(result.message);
+        } else {
+          setSubmitStatus("success");
+        }
         setFormData({
           name: "",
           email: "",
@@ -49,7 +56,7 @@ const Contact = () => {
         });
       } else {
         setSubmitStatus("error");
-        setErrorMessage(data.error || "Failed to send message");
+        setErrorMessage(result.error || "Failed to send message");
       }
     } catch (error) {
       setSubmitStatus("error");
@@ -103,6 +110,33 @@ const Contact = () => {
                 <p className="text-green-700">
                   Thank you! Your message has been sent successfully. We'll get
                   back to you soon.
+                </p>
+              </div>
+            )}
+
+            {/* Queued Message */}
+            {submitStatus === "queued" && (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2">
+                <Clock className="w-5 h-5 text-yellow-600" />
+                <p className="text-yellow-700">{errorMessage}</p>
+              </div>
+            )}
+
+            {/* Offline Status */}
+            {!isOnline && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-blue-700 text-sm">
+                  📱 You're offline. Your message will be queued and sent
+                  automatically when you reconnect.
+                </p>
+              </div>
+            )}
+
+            {/* Queued Submissions Indicator */}
+            {hasQueuedSubmissions && isOnline && (
+              <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <p className="text-purple-700 text-sm">
+                  📤 Sending previously queued messages...
                 </p>
               </div>
             )}
