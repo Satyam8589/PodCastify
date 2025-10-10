@@ -65,28 +65,60 @@ export async function GET(request) {
   try {
     console.log("GET /api/podcasts called");
 
-    await connectToDatabase();
-
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get("limit");
     const offset = searchParams.get("offset") || "0";
 
     console.log("Query params:", { limit, offset });
 
-    let query = Podcast.find({});
+    let podcasts = [];
+    let total = 0;
 
-    // Sort by creation date (newest first)
-    query = query.sort({ createdAt: -1 });
+    try {
+      // Use MongoDB only
+      await connectToDatabase();
 
-    // Apply pagination if limit is specified
-    if (limit) {
-      const limitNum = parseInt(limit);
-      const offsetNum = parseInt(offset);
-      query = query.skip(offsetNum).limit(limitNum);
+      let query = Podcast.find({});
+      query = query.sort({ createdAt: -1 });
+
+      if (limit) {
+        const limitNum = parseInt(limit);
+        const offsetNum = parseInt(offset);
+        query = query.skip(offsetNum).limit(limitNum);
+      }
+
+      const mongoDbPodcasts = await query.exec();
+      total = await Podcast.countDocuments();
+
+      // Transform MongoDB documents to ensure consistent ID field
+      podcasts = mongoDbPodcasts.map((podcast) => {
+        const podcastObj = podcast.toObject();
+        return {
+          id: podcastObj._id.toString(), // Ensure ID is a string
+          title: podcastObj.title,
+          description: podcastObj.description,
+          podcastLink: podcastObj.podcastLink,
+          date: podcastObj.date,
+          time: podcastObj.time,
+          thumbnail: podcastObj.thumbnail,
+          createdAt: podcastObj.createdAt,
+          updatedAt: podcastObj.updatedAt,
+        };
+      });
+    } catch (dbError) {
+      console.error("MongoDB connection failed:", dbError.message);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Failed to connect to database",
+          details:
+            process.env.NODE_ENV === "development"
+              ? dbError.message
+              : undefined,
+        },
+        { status: 500 }
+      );
     }
-
-    const podcasts = await query.exec();
-    const total = await Podcast.countDocuments();
 
     const response = {
       success: true,

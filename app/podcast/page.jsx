@@ -147,16 +147,23 @@ const PodcastPage = () => {
   }, []);
 
   // Handle podcast link click
-  const handlePodcastClick = (podcastLink, title) => {
-    if (podcastLink && podcastLink !== "#") {
-      // Open podcast in new tab
-      window.open(podcastLink, "_blank", "noopener,noreferrer");
+  const handlePodcastClick = (podcastId, title) => {
+    console.log("handlePodcastClick called with:", { podcastId, title });
+
+    if (podcastId && podcastId !== "#" && podcastId !== "") {
+      // Navigate to individual podcast page
+      window.location.href = `/podcast/${podcastId}`;
 
       // Optional: Track analytics
       console.log(`Podcast clicked: ${title}`);
     } else {
-      console.warn("No podcast link available for:", title);
-      alert("This podcast link is not available yet.");
+      console.warn(
+        "No podcast ID available for:",
+        title,
+        "ID received:",
+        podcastId
+      );
+      alert("This podcast is not available yet.");
     }
   };
 
@@ -251,10 +258,7 @@ const PodcastPage = () => {
           {featuredPodcast && (
             <button
               onClick={() =>
-                handlePodcastClick(
-                  featuredPodcast.podcastLink,
-                  featuredPodcast.title
-                )
+                handlePodcastClick(featuredPodcast.id, featuredPodcast.title)
               }
               className="mt-6 bg-orange-500 text-white px-6 py-2 rounded-full shadow hover:bg-orange-600 transition flex items-center gap-2 mx-auto"
             >
@@ -271,10 +275,7 @@ const PodcastPage = () => {
               <div
                 className="relative group cursor-pointer"
                 onClick={() =>
-                  handlePodcastClick(
-                    featuredPodcast.podcastLink,
-                    featuredPodcast.title
-                  )
+                  handlePodcastClick(featuredPodcast.id, featuredPodcast.title)
                 }
               >
                 <Image
@@ -353,7 +354,7 @@ const PodcastPage = () => {
                     key={podcast.id || idx}
                     className="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group cursor-pointer"
                     onClick={() =>
-                      handlePodcastClick(podcast.podcastLink, podcast.title)
+                      handlePodcastClick(podcast.id, podcast.title)
                     }
                   >
                     <div className="relative">
