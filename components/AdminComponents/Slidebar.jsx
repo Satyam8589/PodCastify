@@ -17,7 +17,7 @@ function Sidebar({ isOpen }) {
         <SidebarLink href="/admin/dashboard" label="Dashboard" />
         <SidebarLink href="/admin/upload" label="Upload" />
         <SidebarLink href="/admin/podcastLists" label="Podcasts" />
-        <SidebarLink href="/admin/newsLists" label="News" />
+        <SidebarLink href="/admin/newsLists" label="Advertisement" />
         <SidebarLink href="/admin/blogLists" label="Blogs" />
         <SidebarLink href="/admin/subscription" label="Subscription" />
       </div>

@@ -28,34 +28,36 @@ const PodcastPage = () => {
 
       const currentOffset = isLoadMore ? offset : 0;
       const url = `/api/podcasts?limit=${ITEMS_PER_PAGE}&offset=${currentOffset}`;
-      
-      console.log('Fetching podcasts from:', url); // Debug log
-      
+
+      console.log("Fetching podcasts from:", url); // Debug log
+
       // Test if the API route exists first
       let response;
       try {
         response = await fetch(url, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
       } catch (fetchError) {
-        console.error('Fetch failed:', fetchError);
+        console.error("Fetch failed:", fetchError);
         throw new Error(`Network error: ${fetchError.message}`);
       }
-      
-      console.log('Response status:', response.status); // Debug log
-      console.log('Response ok:', response.ok); // Debug log
-      console.log('Response statusText:', response.statusText); // Debug log
-      
+
+      console.log("Response status:", response.status); // Debug log
+      console.log("Response ok:", response.ok); // Debug log
+      console.log("Response statusText:", response.statusText); // Debug log
+
       // Check for specific error codes
       if (response.status === 404) {
-        throw new Error('API route not found. Make sure /api/podcasts/route.js exists.');
+        throw new Error(
+          "API route not found. Make sure /api/podcasts/route.js exists."
+        );
       }
-      
+
       if (response.status === 500) {
-        let errorDetails = 'Internal server error';
+        let errorDetails = "Internal server error";
         try {
           const errorData = await response.json();
           errorDetails = errorData.error || errorData.message || errorDetails;
@@ -68,34 +70,34 @@ const PodcastPage = () => {
         }
         throw new Error(`Server error: ${errorDetails}`);
       }
-      
+
       if (!response.ok) {
         // Get more detailed error information
         let errorMessage = `HTTP ${response.status} ${response.statusText}`;
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorData.message || errorMessage;
-          console.log('Error response data:', errorData);
+          console.log("Error response data:", errorData);
         } catch (e) {
           // If response isn't JSON, get text
           try {
             const errorText = await response.text();
             errorMessage = errorText || errorMessage;
-            console.log('Error response text:', errorText);
+            console.log("Error response text:", errorText);
           } catch (e2) {
             // Keep default error message
-            console.log('Could not parse error response');
+            console.log("Could not parse error response");
           }
         }
         throw new Error(`Failed to fetch podcasts: ${errorMessage}`);
       }
 
       const result = await response.json();
-      console.log('API Response:', result); // Debug log
-      
+      console.log("API Response:", result); // Debug log
+
       if (result.success) {
         if (isLoadMore) {
-          setPodcasts(prev => [...prev, ...result.data]);
+          setPodcasts((prev) => [...prev, ...result.data]);
         } else {
           setPodcasts(result.data || []);
           // Set the first podcast as featured
@@ -103,30 +105,31 @@ const PodcastPage = () => {
             setFeaturedPodcast(result.data[0]);
           }
         }
-        
+
         setHasMore(result.hasMore || false);
         setOffset(currentOffset + (result.data?.length || 0));
       } else {
-        throw new Error(result.error || 'API returned success: false');
+        throw new Error(result.error || "API returned success: false");
       }
     } catch (err) {
-      console.error('Error fetching podcasts:', err);
+      console.error("Error fetching podcasts:", err);
       setError(err.message);
-      
+
       // If this is the initial load and we get an error, set some fallback data
       if (!isLoadMore && podcasts.length === 0) {
-        console.log('Setting fallback data due to API error');
+        console.log("Setting fallback data due to API error");
         const fallbackPodcasts = [
           {
             id: "fallback-1",
             title: "Sample Podcast Episode",
-            description: "This is a sample podcast episode displayed while we resolve API issues.",
+            description:
+              "This is a sample podcast episode displayed while we resolve API issues.",
             date: "June 8, 2025",
             time: "10:00 AM",
             thumbnail: "/images/default-podcast.jpg",
             podcastLink: "#",
-            createdAt: new Date().toISOString()
-          }
+            createdAt: new Date().toISOString(),
+          },
         ];
         setPodcasts(fallbackPodcasts);
         setFeaturedPodcast(fallbackPodcasts[0]);
@@ -145,15 +148,15 @@ const PodcastPage = () => {
 
   // Handle podcast link click
   const handlePodcastClick = (podcastLink, title) => {
-    if (podcastLink && podcastLink !== '#') {
+    if (podcastLink && podcastLink !== "#") {
       // Open podcast in new tab
-      window.open(podcastLink, '_blank', 'noopener,noreferrer');
-      
+      window.open(podcastLink, "_blank", "noopener,noreferrer");
+
       // Optional: Track analytics
       console.log(`Podcast clicked: ${title}`);
     } else {
-      console.warn('No podcast link available for:', title);
-      alert('This podcast link is not available yet.');
+      console.warn("No podcast link available for:", title);
+      alert("This podcast link is not available yet.");
     }
   };
 
@@ -169,24 +172,24 @@ const PodcastPage = () => {
     try {
       const dateObj = new Date(`${date} ${time}`);
       if (isNaN(dateObj.getTime())) {
-        throw new Error('Invalid date');
+        throw new Error("Invalid date");
       }
       return {
-        date: dateObj.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
+        date: dateObj.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         }),
-        time: dateObj.toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: true 
-        })
+        time: dateObj.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }),
       };
     } catch {
-      return { 
-        date: date || 'Unknown Date', 
-        time: time || 'Unknown Time' 
+      return {
+        date: date || "Unknown Date",
+        time: time || "Unknown Time",
       };
     }
   };
@@ -196,7 +199,9 @@ const PodcastPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 text-xl mb-4">⚠️ Error Loading Podcasts</div>
+          <div className="text-red-500 text-xl mb-4">
+            ⚠️ Error Loading Podcasts
+          </div>
           <p className="text-gray-600 mb-4">{error}</p>
           <div className="space-y-2 text-sm text-gray-500 mb-4">
             <p>Possible causes:</p>
@@ -207,7 +212,7 @@ const PodcastPage = () => {
               <li>Next.js server not running properly</li>
             </ul>
           </div>
-          <button 
+          <button
             onClick={() => fetchPodcasts()}
             className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition"
           >
@@ -234,18 +239,23 @@ const PodcastPage = () => {
 
       {/* Overlay Content */}
       <div className="relative z-10 backdrop-blur-md bg-black/40 min-h-screen text-white px-4 md:px-12 py-10">
-        
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white">
-            🎙️ Welcome to the <span className="text-orange-400">Podcast Hub</span>
+            🎙️ Welcome to the{" "}
+            <span className="text-orange-400">Podcast Hub</span>
           </h1>
           <p className="mt-2 text-gray-200">
             Discover deep conversations and exciting stories
           </p>
           {featuredPodcast && (
-            <button 
-              onClick={() => handlePodcastClick(featuredPodcast.podcastLink, featuredPodcast.title)}
+            <button
+              onClick={() =>
+                handlePodcastClick(
+                  featuredPodcast.podcastLink,
+                  featuredPodcast.title
+                )
+              }
               className="mt-6 bg-orange-500 text-white px-6 py-2 rounded-full shadow hover:bg-orange-600 transition flex items-center gap-2 mx-auto"
             >
               <Play size={20} />
@@ -258,9 +268,21 @@ const PodcastPage = () => {
         {featuredPodcast && (
           <div className="max-w-4xl mx-auto mb-16">
             <div className="rounded-xl overflow-hidden shadow-lg bg-white/10 backdrop-blur-md">
-              <div className="relative group cursor-pointer" onClick={() => handlePodcastClick(featuredPodcast.podcastLink, featuredPodcast.title)}>
+              <div
+                className="relative group cursor-pointer"
+                onClick={() =>
+                  handlePodcastClick(
+                    featuredPodcast.podcastLink,
+                    featuredPodcast.title
+                  )
+                }
+              >
                 <Image
-                  src={featuredPodcast.thumbnail}
+                  src={
+                    featuredPodcast.thumbnail?.url ||
+                    featuredPodcast.thumbnail ||
+                    "/images/default-podcast.jpg"
+                  }
                   alt={featuredPodcast.title}
                   width={800}
                   height={400}
@@ -274,11 +296,12 @@ const PodcastPage = () => {
                     <Play className="text-white" size={32} fill="white" />
                   </div>
                 </div>
-                {featuredPodcast.podcastLink && featuredPodcast.podcastLink !== '#' && (
-                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2">
-                    <ExternalLink className="text-white" size={20} />
-                  </div>
-                )}
+                {featuredPodcast.podcastLink &&
+                  featuredPodcast.podcastLink !== "#" && (
+                    <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2">
+                      <ExternalLink className="text-white" size={20} />
+                    </div>
+                  )}
               </div>
               <div className="p-6">
                 <h2 className="text-2xl font-semibold text-white mb-2">
@@ -290,11 +313,17 @@ const PodcastPage = () => {
                 <div className="flex items-center gap-4 text-sm text-gray-300">
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
-                    {formatDate(featuredPodcast.date, featuredPodcast.time).date}
+                    {
+                      formatDate(featuredPodcast.date, featuredPodcast.time)
+                        .date
+                    }
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock size={16} />
-                    {formatDate(featuredPodcast.date, featuredPodcast.time).time}
+                    {
+                      formatDate(featuredPodcast.date, featuredPodcast.time)
+                        .time
+                    }
                   </div>
                 </div>
               </div>
@@ -323,11 +352,17 @@ const PodcastPage = () => {
                   <div
                     key={podcast.id || idx}
                     className="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group cursor-pointer"
-                    onClick={() => handlePodcastClick(podcast.podcastLink, podcast.title)}
+                    onClick={() =>
+                      handlePodcastClick(podcast.podcastLink, podcast.title)
+                    }
                   >
                     <div className="relative">
                       <Image
-                        src={podcast.thumbnail}
+                        src={
+                          podcast.thumbnail?.url ||
+                          podcast.thumbnail ||
+                          "/images/default-podcast.jpg"
+                        }
                         alt={podcast.title}
                         width={400}
                         height={200}
@@ -341,7 +376,7 @@ const PodcastPage = () => {
                           <Play className="text-white" size={20} fill="white" />
                         </div>
                       </div>
-                      {podcast.podcastLink && podcast.podcastLink !== '#' && (
+                      {podcast.podcastLink && podcast.podcastLink !== "#" && (
                         <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <ExternalLink className="text-white" size={16} />
                         </div>
@@ -399,9 +434,7 @@ const PodcastPage = () => {
                   Loading...
                 </>
               ) : (
-                <>
-                  Load More Episodes
-                </>
+                <>Load More Episodes</>
               )}
             </button>
           </div>
@@ -410,10 +443,8 @@ const PodcastPage = () => {
         {/* Error Message for Load More */}
         {error && podcasts.length > 0 && (
           <div className="text-center mt-8 p-4 bg-red-500/20 backdrop-blur-sm rounded-lg border border-red-500/30">
-            <p className="text-red-200">
-              Error loading more podcasts: {error}
-            </p>
-            <button 
+            <p className="text-red-200">Error loading more podcasts: {error}</p>
+            <button
               onClick={() => fetchPodcasts(true)}
               className="mt-2 text-red-300 hover:text-red-100 underline"
             >
@@ -423,7 +454,7 @@ const PodcastPage = () => {
         )}
 
         {/* Debug Info (remove in production) */}
-        {process.env.NODE_ENV === 'development' && error && (
+        {process.env.NODE_ENV === "development" && error && (
           <div className="fixed bottom-4 right-4 bg-red-900/80 text-white p-4 rounded-lg max-w-md text-xs">
             <div className="font-bold mb-2">Debug Info:</div>
             <div>Error: {error}</div>

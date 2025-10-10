@@ -1,11 +1,12 @@
 import FeaturedPodcasts from "@/components/FeaturedPodcasts";
-import LatestNews from "@/components/LatestNews";
+import LatestAdvertisements from "@/components/LatestAdvertisements";
 import Newsletter from "@/components/Newsletter";
 import ContactForm from "@/components/ContactForm";
 import Button from "@/components/Button";
 import About from "@/components/About";
 import LatestBlogs from "@/components/LatestBlogs";
 import React from "react";
+import "./globals.css";
 import "./globals.css";
 
 export default function Home() {
@@ -66,8 +67,8 @@ export default function Home() {
       {/* Latest Blogs */}
       <LatestBlogs />
 
-      {/* Latest News */}
-      <LatestNews />
+      {/* Latest Advertisements */}
+      <LatestAdvertisements />
 
       {/* Newsletter */}
       <Newsletter />

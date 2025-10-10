@@ -7,29 +7,30 @@ import Link from "next/link";
 const advertisementItems = [
   {
     id: 1,
-    title: "Premium Headphones - 50% Off",
+    title: 'Premium Headphones - 50% Off',
     description:
-      "Experience crystal-clear audio with our professional-grade headphones. Limited time offer!",
-    image: "/images/news1.jpg", // ✅ corrected path
-    link: "#",
+      'Experience crystal-clear audio with our professional-grade headphones. Limited time offer!',
+    image: '/images/news1.jpg', // ✅ corrected path
+    link: '#',
   },
   {
     id: 2,
-    title: "Best Podcast Equipment Bundle",
+    title: 'Best Podcast Equipment Bundle',
     description:
-      "Complete podcasting setup including microphone, audio interface, and accessories.",
-    image: "/images/news2.jpg", // ✅
-    link: "#",
+      'Complete podcasting setup including microphone, audio interface, and accessories.',
+    image: '/images/news2.jpg', // ✅
+    link: '#',
   },
   {
     id: 3,
-    title: "Online Course: Podcast Creation",
+    title: 'Online Course: Podcast Creation',
     description:
-      "Learn how to create, edit, and publish professional podcasts with our comprehensive course.",
-    image: "/images/news3.jpg", // ✅
-    link: "#",
+      'Learn how to create, edit, and publish professional podcasts with our comprehensive course.',
+    image: '/images/news3.jpg', // ✅
+    link: '#',
   },
 ];
+
 
 export default function LatestAdvertisements() {
   return (

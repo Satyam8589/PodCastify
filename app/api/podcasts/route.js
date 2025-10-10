@@ -1,226 +1,116 @@
-// app/api/podcast/route.js
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import connectToDatabase from "@/lib/mongoose";
+import Podcast from "@/lib/models/Podcast";
 
-// File path for storing podcast data
-const dataFilePath = path.join(process.cwd(), "data", "podcasts.json");
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Ensure data directory exists
-const ensureDataDirectory = () => {
+// Helper function to upload image to Cloudinary
+async function uploadToCloudinary(file) {
   try {
-    const dataDir = path.join(process.cwd(), "data");
-    if (!fs.existsSync(dataDir)) {
-      console.log('Creating data directory:', dataDir);
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    return true;
-  } catch (error) {
-    console.error('Error creating data directory:', error);
-    return false;
-  }
-};
+    console.log("Starting Cloudinary upload for podcast...");
+    console.log("Cloudinary config check:", {
+      cloud_name: !!process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: !!process.env.CLOUDINARY_API_KEY,
+      api_secret: !!process.env.CLOUDINARY_API_SECRET,
+    });
 
-// Read existing podcast data
-const readPodcastData = () => {
-  try {
-    console.log('Reading podcast data from:', dataFilePath);
-    
-    if (!ensureDataDirectory()) {
-      throw new Error('Failed to create data directory');
-    }
-    
-    if (!fs.existsSync(dataFilePath)) {
-      console.log('Podcast data file does not exist, creating with default data');
-      // Create initial file with default podcasts if it doesn't exist
-      const defaultPodcasts = [
-        {
-          id: "1",
-          title: "Why AI is Eating the World",
-          description: "Exploring the rise of artificial intelligence and its impact on society",
-          date: "May 25, 2025",
-          time: "10:00 AM",
-          thumbnail: "/images/ai-world.jpg",
-          podcastLink: "https://example.com/ai-world-podcast",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "2",
-          title: "The Future of Work",
-          description: "Exploring the rise of artificial intelligence",
-          date: "May 20, 2025",
-          time: "08:00 AM",
-          thumbnail: "/images/future-work.jpg",
-          podcastLink: "https://example.com/future-work-podcast",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "3",
-          title: "Health and Wellness",
-          description: "Tips and insights on wellness",
-          date: "May 19, 2025",
-          time: "02:50 PM",
-          thumbnail: "/images/health.jpg",
-          podcastLink: "https://example.com/health-podcast",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "4",
-          title: "The Entrepreneurial Journey",
-          description: "Deep insights from founders",
-          date: "May 15, 2025",
-          time: "11:00 AM",
-          thumbnail: "/images/entrepreneur.jpg",
-          podcastLink: "https://example.com/entrepreneur-podcast",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "5",
-          title: "Exploring the Cosmos",
-          description: "Space, telescopes, and wonder",
-          date: "May 10, 2025",
-          time: "04:00 PM",
-          thumbnail: "/images/cosmos.jpg",
-          podcastLink: "https://example.com/cosmos-podcast",
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: "6",
-          title: "History's Greatest Mysteries",
-          description: "Time travel through secrets",
-          date: "May 5, 2025",
-          time: "01:20 PM",
-          thumbnail: "/images/mystery.jpg",
-          podcastLink: "https://example.com/mystery-podcast",
-          createdAt: new Date().toISOString()
-        }
-      ];
-      
-      try {
-        fs.writeFileSync(dataFilePath, JSON.stringify(defaultPodcasts, null, 2));
-        console.log('Default podcast data created successfully');
-        return defaultPodcasts;
-      } catch (writeError) {
-        console.error('Error writing default podcast data:', writeError);
-        throw new Error(`Failed to create default podcast data: ${writeError.message}`);
-      }
-    }
-    
-    const data = fs.readFileSync(dataFilePath, "utf8");
-    const podcasts = JSON.parse(data);
-    console.log(`Successfully read ${podcasts.length} podcasts`);
-    return podcasts;
-  } catch (error) {
-    console.error("Error reading podcast data:", error);
-    throw new Error(`Failed to read podcast data: ${error.message}`);
-  }
-};
-
-// Write podcast data
-const writePodcastData = (data) => {
-  try {
-    if (!ensureDataDirectory()) {
-      throw new Error('Failed to create data directory');
-    }
-    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
-    console.log('Podcast data written successfully');
-    return true;
-  } catch (error) {
-    console.error("Error writing podcast data:", error);
-    throw new Error(`Failed to write podcast data: ${error.message}`);
-  }
-};
-
-// Generate unique ID
-const generateId = () => {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-};
-
-// Handle file upload
-const handleFileUpload = async (file) => {
-  if (!file) return null;
-
-  try {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "podcasts");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    console.log("File buffer size:", buffer.length);
 
-    // Generate unique filename
-    const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const filePath = path.join(uploadsDir, fileName);
-
-    // Write file
-    fs.writeFileSync(filePath, buffer);
-
-    // Return the public URL
-    return `/uploads/podcasts/${fileName}`;
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: "image",
+            folder: "podcast-images",
+            transformation: [
+              { width: 800, height: 600, crop: "fill" },
+              { quality: "auto" },
+            ],
+          },
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary upload error:", error);
+              reject(error);
+            } else {
+              console.log("Cloudinary upload success:", {
+                url: result.secure_url,
+                public_id: result.public_id,
+              });
+              resolve({
+                url: result.secure_url,
+                public_id: result.public_id,
+              });
+            }
+          }
+        )
+        .end(buffer);
+    });
   } catch (error) {
-    console.error('Error handling file upload:', error);
-    throw new Error(`File upload failed: ${error.message}`);
+    console.error("Error uploading to Cloudinary:", error);
+    throw new Error(`Cloudinary upload failed: ${error.message}`);
   }
-};
+}
 
 // GET - Retrieve all podcasts
 export async function GET(request) {
   try {
-    console.log('GET /api/podcast called');
-    
-    const { searchParams } = new URL(request.url);
-    const limit = searchParams.get('limit');
-    const offset = searchParams.get('offset') || '0';
-    
-    console.log('Query params:', { limit, offset });
+    console.log("GET /api/podcasts called");
 
-    const podcasts = readPodcastData();
-    
-    // Sort by date (newest first)
-    const sortedPodcasts = podcasts.sort((a, b) => {
-      try {
-        const dateA = new Date(`${a.date} ${a.time}`);
-        const dateB = new Date(`${b.date} ${b.time}`);
-        return dateB - dateA;
-      } catch (error) {
-        console.warn('Error sorting podcasts by date:', error);
-        return 0;
-      }
-    });
+    await connectToDatabase();
+
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.get("limit");
+    const offset = searchParams.get("offset") || "0";
+
+    console.log("Query params:", { limit, offset });
+
+    let query = Podcast.find({});
+
+    // Sort by creation date (newest first)
+    query = query.sort({ createdAt: -1 });
 
     // Apply pagination if limit is specified
-    let result = sortedPodcasts;
     if (limit) {
       const limitNum = parseInt(limit);
       const offsetNum = parseInt(offset);
-      result = sortedPodcasts.slice(offsetNum, offsetNum + limitNum);
+      query = query.skip(offsetNum).limit(limitNum);
     }
+
+    const podcasts = await query.exec();
+    const total = await Podcast.countDocuments();
 
     const response = {
       success: true,
-      data: result,
-      total: podcasts.length,
-      hasMore: limit ? (parseInt(offset) + parseInt(limit)) < podcasts.length : false
+      data: podcasts,
+      total,
+      hasMore: limit ? parseInt(offset) + parseInt(limit) < total : false,
     };
-    
-    console.log('Returning response:', {
+
+    console.log("Returning response:", {
       success: response.success,
       dataCount: response.data.length,
       total: response.total,
-      hasMore: response.hasMore
+      hasMore: response.hasMore,
     });
 
     return NextResponse.json(response);
-
   } catch (error) {
-    console.error("Error in GET /api/podcast:", error);
+    console.error("Error in GET /api/podcasts:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: `Failed to fetch podcasts: ${error.message}`,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
       },
       { status: 500 }
     );
@@ -230,19 +120,28 @@ export async function GET(request) {
 // POST - Create new podcast
 export async function POST(request) {
   try {
-    console.log('POST /api/podcast called');
-    
-    const formData = await request.formData();
-    
-    // Extract form fields
-    const title = formData.get('title');
-    const description = formData.get('description');
-    const podcastLink = formData.get('podcastLink');
-    const date = formData.get('date');
-    const time = formData.get('time');
-    const thumbnailFile = formData.get('thumbnail');
+    console.log("POST /api/podcasts called");
 
-    console.log('Form data received:', { title, description, podcastLink, date, time, hasFile: !!thumbnailFile });
+    await connectToDatabase();
+
+    const formData = await request.formData();
+
+    // Extract form fields
+    const title = formData.get("title");
+    const description = formData.get("description");
+    const podcastLink = formData.get("podcastLink");
+    const date = formData.get("date");
+    const time = formData.get("time");
+    const thumbnailFile = formData.get("thumbnail");
+
+    console.log("Form data received:", {
+      title,
+      description,
+      podcastLink,
+      date,
+      time,
+      hasFile: !!thumbnailFile,
+    });
 
     // Validate required fields
     if (!title || !description || !podcastLink || !date || !time) {
@@ -262,47 +161,106 @@ export async function POST(request) {
       );
     }
 
-    // Handle thumbnail upload
-    let thumbnailPath = null;
+    // Handle thumbnail upload to Cloudinary
+    let thumbnailData = {
+      url: "/images/default-podcast.jpg",
+      public_id: "default-podcast",
+    };
+
     if (thumbnailFile && thumbnailFile.size > 0) {
-      thumbnailPath = await handleFileUpload(thumbnailFile);
+      // Validate file type
+      if (!thumbnailFile.type.startsWith("image/")) {
+        return NextResponse.json(
+          { success: false, error: "Please upload a valid image file" },
+          { status: 400 }
+        );
+      }
+
+      // Validate file size (5MB limit)
+      if (thumbnailFile.size > 5 * 1024 * 1024) {
+        return NextResponse.json(
+          { success: false, error: "Image file must be smaller than 5MB" },
+          { status: 400 }
+        );
+      }
+
+      try {
+        thumbnailData = await uploadToCloudinary(thumbnailFile);
+      } catch (error) {
+        console.error("Thumbnail upload failed:", error);
+        return NextResponse.json(
+          { success: false, error: `Image upload failed: ${error.message}` },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Helper function to slugify string (same as in model)
+    function slugify(text) {
+      return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .replace(/-+/g, "-");
+    }
+
+    // Generate unique slug
+    const baseSlug = slugify(title.trim());
+    let uniqueSlug = baseSlug;
+    let counter = 1;
+
+    // Check for existing slugs and make it unique
+    while (await Podcast.findOne({ slug: uniqueSlug })) {
+      uniqueSlug = `${baseSlug}-${counter}`;
+      counter++;
     }
 
     // Create new podcast object
-    const newPodcast = {
-      id: generateId(),
+    const newPodcast = new Podcast({
       title: title.trim(),
       description: description.trim(),
       podcastLink: podcastLink.trim(),
       date: date,
       time: time,
-      thumbnail: thumbnailPath || "/images/default-podcast.jpg", // fallback image
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      thumbnail: thumbnailData,
+      slug: uniqueSlug,
+    });
 
-    // Read existing data and add new podcast
-    const existingPodcasts = readPodcastData();
-    const updatedPodcasts = [newPodcast, ...existingPodcasts];
+    // Save to database
+    const savedPodcast = await newPodcast.save();
 
-    // Write updated data
-    writePodcastData(updatedPodcasts);
-
-    console.log('New podcast created successfully:', newPodcast.id);
+    console.log("New podcast created successfully:", savedPodcast._id);
 
     return NextResponse.json({
       success: true,
       message: "Podcast uploaded successfully!",
-      data: newPodcast
+      data: savedPodcast,
     });
-
   } catch (error) {
-    console.error("Error in POST /api/podcast:", error);
+    console.error("Error in POST /api/podcasts:", error);
+
+    // Handle mongoose validation errors
+    if (error.name === "ValidationError") {
+      const validationErrors = Object.values(error.errors).map(
+        (err) => err.message
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Validation error: ${validationErrors.join(", ")}`,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: `Failed to create podcast: ${error.message}`,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
       },
       { status: 500 }
     );
@@ -312,10 +270,12 @@ export async function POST(request) {
 // PUT - Update existing podcast
 export async function PUT(request) {
   try {
-    console.log('PUT /api/podcast called');
-    
+    console.log("PUT /api/podcasts called");
+
+    await connectToDatabase();
+
     const formData = await request.formData();
-    const id = formData.get('id');
+    const id = formData.get("id");
 
     if (!id) {
       return NextResponse.json(
@@ -324,10 +284,8 @@ export async function PUT(request) {
       );
     }
 
-    const podcasts = readPodcastData();
-    const podcastIndex = podcasts.findIndex(p => p.id === id);
-
-    if (podcastIndex === -1) {
+    const podcast = await Podcast.findById(id);
+    if (!podcast) {
       return NextResponse.json(
         { success: false, error: "Podcast not found" },
         { status: 404 }
@@ -335,51 +293,101 @@ export async function PUT(request) {
     }
 
     // Extract and update fields
-    const title = formData.get('title');
-    const description = formData.get('description');
-    const podcastLink = formData.get('podcastLink');
-    const date = formData.get('date');
-    const time = formData.get('time');
-    const thumbnailFile = formData.get('thumbnail');
+    const title = formData.get("title");
+    const description = formData.get("description");
+    const podcastLink = formData.get("podcastLink");
+    const date = formData.get("date");
+    const time = formData.get("time");
+    const thumbnailFile = formData.get("thumbnail");
 
-    const existingPodcast = podcasts[podcastIndex];
-    let thumbnailPath = existingPodcast.thumbnail;
+    // Update basic fields
+    if (title) podcast.title = title.trim();
+    if (description) podcast.description = description.trim();
+    if (podcastLink) {
+      try {
+        new URL(podcastLink);
+        podcast.podcastLink = podcastLink.trim();
+      } catch {
+        return NextResponse.json(
+          { success: false, error: "Invalid podcast link URL" },
+          { status: 400 }
+        );
+      }
+    }
+    if (date) podcast.date = date;
+    if (time) podcast.time = time;
 
     // Handle new thumbnail upload
     if (thumbnailFile && thumbnailFile.size > 0) {
-      thumbnailPath = await handleFileUpload(thumbnailFile);
+      // Validate file type
+      if (!thumbnailFile.type.startsWith("image/")) {
+        return NextResponse.json(
+          { success: false, error: "Please upload a valid image file" },
+          { status: 400 }
+        );
+      }
+
+      // Validate file size (5MB limit)
+      if (thumbnailFile.size > 5 * 1024 * 1024) {
+        return NextResponse.json(
+          { success: false, error: "Image file must be smaller than 5MB" },
+          { status: 400 }
+        );
+      }
+
+      try {
+        // Delete old image from Cloudinary if it's not the default
+        if (
+          podcast.thumbnail.public_id &&
+          podcast.thumbnail.public_id !== "default-podcast"
+        ) {
+          await cloudinary.uploader.destroy(podcast.thumbnail.public_id);
+        }
+
+        // Upload new image
+        const thumbnailData = await uploadToCloudinary(thumbnailFile);
+        podcast.thumbnail = thumbnailData;
+      } catch (error) {
+        console.error("Thumbnail upload failed:", error);
+        return NextResponse.json(
+          { success: false, error: `Image upload failed: ${error.message}` },
+          { status: 500 }
+        );
+      }
     }
 
-    // Update podcast object
-    const updatedPodcast = {
-      ...existingPodcast,
-      title: title?.trim() || existingPodcast.title,
-      description: description?.trim() || existingPodcast.description,
-      podcastLink: podcastLink?.trim() || existingPodcast.podcastLink,
-      date: date || existingPodcast.date,
-      time: time || existingPodcast.time,
-      thumbnail: thumbnailPath,
-      updatedAt: new Date().toISOString()
-    };
+    const updatedPodcast = await podcast.save();
 
-    podcasts[podcastIndex] = updatedPodcast;
-    writePodcastData(podcasts);
-
-    console.log('Podcast updated successfully:', id);
+    console.log("Podcast updated successfully:", id);
 
     return NextResponse.json({
       success: true,
       message: "Podcast updated successfully!",
-      data: updatedPodcast
+      data: updatedPodcast,
     });
-
   } catch (error) {
-    console.error("Error in PUT /api/podcast:", error);
+    console.error("Error in PUT /api/podcasts:", error);
+
+    // Handle mongoose validation errors
+    if (error.name === "ValidationError") {
+      const validationErrors = Object.values(error.errors).map(
+        (err) => err.message
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Validation error: ${validationErrors.join(", ")}`,
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: `Failed to update podcast: ${error.message}`,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
       },
       { status: 500 }
     );
@@ -389,10 +397,12 @@ export async function PUT(request) {
 // DELETE - Delete podcast
 export async function DELETE(request) {
   try {
-    console.log('DELETE /api/podcast called');
-    
+    console.log("DELETE /api/podcasts called");
+
+    await connectToDatabase();
+
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const id = searchParams.get("id");
 
     if (!id) {
       return NextResponse.json(
@@ -401,32 +411,46 @@ export async function DELETE(request) {
       );
     }
 
-    const podcasts = readPodcastData();
-    const filteredPodcasts = podcasts.filter(p => p.id !== id);
-
-    if (filteredPodcasts.length === podcasts.length) {
+    const podcast = await Podcast.findById(id);
+    if (!podcast) {
       return NextResponse.json(
         { success: false, error: "Podcast not found" },
         { status: 404 }
       );
     }
 
-    writePodcastData(filteredPodcasts);
+    // Delete image from Cloudinary if it's not the default
+    if (
+      podcast.thumbnail.public_id &&
+      podcast.thumbnail.public_id !== "default-podcast"
+    ) {
+      try {
+        await cloudinary.uploader.destroy(podcast.thumbnail.public_id);
+        console.log(
+          "Deleted image from Cloudinary:",
+          podcast.thumbnail.public_id
+        );
+      } catch (error) {
+        console.warn("Failed to delete image from Cloudinary:", error);
+      }
+    }
 
-    console.log('Podcast deleted successfully:', id);
+    await Podcast.findByIdAndDelete(id);
+
+    console.log("Podcast deleted successfully:", id);
 
     return NextResponse.json({
       success: true,
-      message: "Podcast deleted successfully!"
+      message: "Podcast deleted successfully!",
     });
-
   } catch (error) {
-    console.error("Error in DELETE /api/podcast:", error);
+    console.error("Error in DELETE /api/podcasts:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: `Failed to delete podcast: ${error.message}`,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
       },
       { status: 500 }
     );

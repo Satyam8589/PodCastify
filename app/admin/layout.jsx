@@ -109,7 +109,7 @@ export default function AdminLayout({ children }) {
                 }}
                 className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium text-left md:text-center"
               >
-                News Lists
+                Advertisement Lists
               </button>
               <button
                 onClick={() => {
