@@ -28,8 +28,8 @@ self.addEventListener("push", function (event) {
 
     const options = {
       body: data.body,
-      icon: data.icon || "/icon-192x192.png",
-      badge: data.badge || "/icon-96x96.png",
+      icon: data.icon || "/web-app-manifest-192x192.png",
+      badge: data.badge || "/favicon-96x96.jpg",
       image: data.image,
       data: data.data,
       actions: data.actions || [],
@@ -47,8 +47,8 @@ self.addEventListener("push", function (event) {
     event.waitUntil(
       self.registration.showNotification("New Update Available!", {
         body: "Check out the latest content on PodCastify",
-        icon: "/icon-192x192.png",
-        badge: "/icon-96x96.png",
+        icon: "/web-app-manifest-192x192.png",
+        badge: "/favicon-96x96.jpg",
         tag: "fallback",
       })
     );

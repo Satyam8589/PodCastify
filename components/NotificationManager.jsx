@@ -118,6 +118,9 @@ const NotificationManager = () => {
         }
       } catch (error) {
         console.error("Error checking/registering service worker:", error);
+        setStatus(
+          `Service worker error: ${error.message}. Some features may not work properly.`
+        );
       }
 
       // Check current subscription status
@@ -165,7 +168,6 @@ const NotificationManager = () => {
       console.error("Error checking subscription status:", error);
       setStatus(`Error checking notification status: ${error.message}`);
 
-      // Clear error after 5 seconds
       setTimeout(() => setStatus(""), 5000);
     }
   };
@@ -266,7 +268,6 @@ const NotificationManager = () => {
           setShowPermissionHelper(true);
           setShowTroubleshooter(true);
 
-          // Show detailed recovery instructions
           setTimeout(() => {
             setStatus(`
 🚫 NOTIFICATIONS BLOCKED - Here's how to fix it:
@@ -319,7 +320,6 @@ const NotificationManager = () => {
           setShowTroubleshooter(true);
           return;
         } else if (permission !== "granted") {
-          // Handle "default" or other states where user didn't grant permission
           setStatus(`
 🔔 Permission needed but not granted (Status: ${permission})
 
@@ -455,7 +455,6 @@ ALTERNATIVE: Use the troubleshooter below to reset everything
 
         setStatus(`Error: ${errorMessage}`);
 
-        // Clear error status after 8 seconds
         setTimeout(() => setStatus(""), 8000);
       }
     };
