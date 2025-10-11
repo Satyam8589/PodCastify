@@ -22,7 +22,6 @@ export const metadata = {
   description:
     "Stream podcasts, read blogs, and discover advertisements in one place",
   manifest: "/manifest.json",
-  themeColor: "#7C3AED",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -31,6 +30,13 @@ export const metadata = {
   other: {
     "mobile-web-app-capable": "yes",
   },
+};
+
+export const viewport = {
+  themeColor: "#7C3AED",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 import { Toaster } from "react-hot-toast";

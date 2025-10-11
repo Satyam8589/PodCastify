@@ -6,8 +6,8 @@ import Button from "@/components/Button";
 import About from "@/components/About";
 import LatestBlogs from "@/components/LatestBlogs";
 import NotificationManager from "@/components/NotificationManager";
+import Image from "next/image";
 import React from "react";
-import "./globals.css";
 import "./globals.css";
 
 export default function Home() {
@@ -49,10 +49,13 @@ export default function Home() {
               </Button>
             </div>
             <div className="md:w-1/2">
-              <img
+              <Image
                 src="/images/FeaturedPodcasts.jpg"
                 alt="Podcast Studio"
-                className="rounded-2xl shadow-lg w-full"
+                width={800}
+                height={600}
+                className="rounded-2xl shadow-lg w-full h-auto"
+                priority
               />
             </div>
           </div>

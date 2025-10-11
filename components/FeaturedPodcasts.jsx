@@ -48,18 +48,21 @@ const FeaturedPodcasts = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {displayPodcasts.map((podcast) => (
-              <Link key={podcast.id} href={`/podcast/${podcast.id}`}>
-                <PodcastCard
-                  title={podcast.title}
-                  desc={podcast.description}
-                  time={podcast.time}
-                  image={
-                    podcast.thumbnail?.url ||
-                    podcast.thumbnail ||
-                    "/images/default-podcast.jpg"
-                  }
-                />
-              </Link>
+              <div key={podcast.id} className="flex">
+                <Link href={`/podcast/${podcast.id}`} className="w-full">
+                  <PodcastCard
+                    title={podcast.title}
+                    desc={podcast.description}
+                    time={podcast.time}
+                    id={podcast.id}
+                    image={
+                      podcast.thumbnail?.url ||
+                      podcast.thumbnail ||
+                      "/images/default-podcast.jpg"
+                    }
+                  />
+                </Link>
+              </div>
             ))}
           </div>
         )}

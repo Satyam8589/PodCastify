@@ -309,10 +309,16 @@ const PodcastPage = () => {
                   )}
               </div>
               <div className="p-6">
-                <h2 className="text-2xl font-semibold text-white mb-2">
+                <h2
+                  className="text-2xl font-semibold text-white mb-2 line-clamp-2"
+                  title={featuredPodcast.title}
+                >
                   {featuredPodcast.title}
                 </h2>
-                <p className="text-gray-200 mb-3">
+                <p
+                  className="text-gray-200 mb-3 line-clamp-3"
+                  title={featuredPodcast.description}
+                >
                   {featuredPodcast.description}
                 </p>
                 <div className="flex items-center gap-4 text-sm text-gray-300">
@@ -388,10 +394,16 @@ const PodcastPage = () => {
                       )}
                     </div>
                     <div className="p-4 text-white">
-                      <h3 className="font-bold text-lg mb-2 group-hover:text-orange-400 transition-colors">
+                      <h3
+                        className="font-bold text-lg mb-2 group-hover:text-orange-400 transition-colors line-clamp-2"
+                        title={podcast.title}
+                      >
                         {podcast.title}
                       </h3>
-                      <p className="text-sm text-gray-200 mb-3 line-clamp-2">
+                      <p
+                        className="text-sm text-gray-200 mb-3 line-clamp-2"
+                        title={podcast.description}
+                      >
                         {podcast.description}
                       </p>
                       <div className="flex items-center gap-3 text-xs text-gray-300">

@@ -170,6 +170,7 @@ const NotificationManager = () => {
     }
   };
 
+  // Load preferences from server
   // Helper function to detect browser and provide specific instructions
   const getBrowserSpecificInstructions = () => {
     const userAgent = navigator.userAgent.toLowerCase();

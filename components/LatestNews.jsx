@@ -61,10 +61,18 @@ export default function LatestAdvertisements() {
               className="w-full h-48 object-cover"
             />
             <div className="p-4">
-              <h3 className="text-lg font-semibold text-black mb-2">
+              <h3
+                className="text-lg font-semibold text-black mb-2 line-clamp-2"
+                title={item.title}
+              >
                 {item.title}
               </h3>
-              <p className="text-sm text-gray-600 mb-4">{item.description}</p>
+              <p
+                className="text-sm text-gray-600 mb-4 line-clamp-3"
+                title={item.description}
+              >
+                {item.description}
+              </p>
               <Link
                 href={item.link}
                 className="text-[#5E5ADB] font-semibold text-sm hover:underline"
