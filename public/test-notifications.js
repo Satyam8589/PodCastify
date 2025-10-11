@@ -54,17 +54,25 @@ async function testNotificationPermission() {
 }
 
 // Test 4: Test simple browser notification
-function testBrowserNotification() {
+async function testBrowserNotification() {
   console.log("\n4. Testing Browser Notification:");
 
   if (Notification.permission === "granted") {
-    new Notification("🎉 Test Notification", {
-      body: "PodCastify notification system is working!",
-      icon: "/icon-192x192.png",
-      badge: "/icon-96x96.png",
-    });
-    console.log("✅ Test notification sent");
-    return true;
+    try {
+      // Use service worker registration for notifications
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification("🎉 Test Notification", {
+        body: "PodCastify notification system is working!",
+        icon: "/web-app-manifest-192x192.png",
+        badge: "/favicon-96x96.jpg",
+        tag: "test-script",
+      });
+      console.log("✅ Test notification sent via service worker");
+      return true;
+    } catch (error) {
+      console.error("❌ Error showing notification:", error);
+      return false;
+    }
   } else {
     console.log("❌ Permission not granted");
     return false;

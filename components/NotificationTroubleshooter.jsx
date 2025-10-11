@@ -68,12 +68,16 @@ const NotificationTroubleshooter = () => {
     },
     {
       title: "Test Basic Notification",
-      test: () => {
+      test: async () => {
         try {
           if (Notification.permission === "granted") {
-            new Notification("Test Notification", {
+            // Use service worker registration for notifications
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification("Test Notification", {
               body: "This is a test notification from PodCastify",
-              icon: "/icon1.png",
+              icon: "/web-app-manifest-192x192.png",
+              badge: "/favicon-96x96.jpg",
+              tag: "troubleshooter-test",
             });
             return {
               passed: true,

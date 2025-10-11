@@ -471,18 +471,28 @@ SOLUTIONS:
   };
 
   // Test notification
-  const testNotification = () => {
+  const testNotification = async () => {
     if (!isSubscribed) {
       setStatus("Please subscribe to notifications first");
       return;
     }
 
     if (Notification.permission === "granted") {
-      new Notification("Test Notification", {
-        body: "This is a test notification from PodCastify!",
-        icon: "/icon-192x192.png",
-        badge: "/icon-96x96.png",
-      });
+      try {
+        // Use service worker registration to show notification
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification("Test Notification", {
+          body: "This is a test notification from PodCastify!",
+          icon: "/web-app-manifest-192x192.png",
+          badge: "/favicon-96x96.jpg",
+          tag: "test",
+        });
+      } catch (error) {
+        console.error("Error showing test notification:", error);
+        setStatus(
+          "Failed to show test notification. Please check console for details."
+        );
+      }
     }
   };
 
