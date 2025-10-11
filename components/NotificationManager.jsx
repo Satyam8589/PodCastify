@@ -28,61 +28,6 @@ const NotificationManager = () => {
   const [showTroubleshooter, setShowTroubleshooter] = useState(false);
   const [showPermissionHelper, setShowPermissionHelper] = useState(false);
 
-  // Helper function to create detailed permission instructions
-  const createPermissionInstructions = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-
-    if (userAgent.includes("chrome")) {
-      return "To enable: 1) Click the lock/info icon in the address bar, 2) Set 'Notifications' to 'Allow', 3) Refresh the page and try again.";
-    } else if (userAgent.includes("firefox")) {
-      return "To enable: 1) Click the shield icon in the address bar, 2) Click 'Turn off blocking for this site', 3) Refresh and try again.";
-    } else if (userAgent.includes("edge")) {
-      return "To enable: 1) Click the lock icon in the address bar, 2) Set 'Notifications' to 'Allow', 3) Refresh the page and try again.";
-    } else if (userAgent.includes("safari")) {
-      return "To enable: 1) Go to Safari > Preferences > Websites > Notifications, 2) Set this site to 'Allow', 3) Refresh and try again.";
-    } else {
-      return "Please check your browser settings to allow notifications for this site, then refresh the page and try again.";
-    }
-  };
-
-  // Check if notifications can be granted (enhanced detection)
-  const canGrantNotifications = () => {
-    // Basic support check
-    if (!("Notification" in window)) {
-      return {
-        canGrant: false,
-        reason: "Notifications not supported in this browser",
-      };
-    }
-
-    // Secure context check
-    if (!window.isSecureContext && window.location.hostname !== "localhost") {
-      return {
-        canGrant: false,
-        reason: "Notifications require HTTPS connection",
-      };
-    }
-
-    // Permission status check
-    const permission = Notification.permission;
-    if (permission === "denied") {
-      return {
-        canGrant: false,
-        reason: "Notifications are blocked by user or browser policy",
-      };
-    }
-
-    // Check if permission request function exists
-    if (typeof Notification.requestPermission !== "function") {
-      return {
-        canGrant: false,
-        reason: "Browser does not support permission requests",
-      };
-    }
-
-    return { canGrant: true, reason: "Notifications should be available" };
-  };
-
   // Reset notification permissions (for testing)
   const resetPermissions = async () => {
     try {
@@ -210,63 +155,6 @@ const NotificationManager = () => {
     }
   };
 
-  // Helper function to detect browser and provide specific instructions
-  const getBrowserSpecificInstructions = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-
-    if (userAgent.includes("chrome")) {
-      return {
-        browser: "Chrome",
-        steps: [
-          "Click the 🔒 lock icon or ⚙️ settings icon in the address bar",
-          'Find "Notifications" in the permissions list',
-          'Change from "Block" to "Allow"',
-          "Refresh the page and try subscribing again",
-        ],
-      };
-    } else if (userAgent.includes("firefox")) {
-      return {
-        browser: "Firefox",
-        steps: [
-          "Click the 🛡️ shield icon in the address bar",
-          "Look for notification permissions",
-          "Or go to Settings → Privacy & Security → Permissions → Notifications",
-          "Remove this site from the exceptions list and refresh",
-        ],
-      };
-    } else if (userAgent.includes("safari")) {
-      return {
-        browser: "Safari",
-        steps: [
-          "Go to Safari → Preferences → Websites → Notifications",
-          "Find this website in the list",
-          'Change the setting to "Allow"',
-          "Refresh the page and try again",
-        ],
-      };
-    } else if (userAgent.includes("edge")) {
-      return {
-        browser: "Edge",
-        steps: [
-          "Click the 🔒 lock icon in the address bar",
-          'Click "Permissions for this site"',
-          'Find "Notifications" and set to "Allow"',
-          "Refresh the page and try subscribing again",
-        ],
-      };
-    } else {
-      return {
-        browser: "Your Browser",
-        steps: [
-          "Look for a lock, shield, or settings icon in your address bar",
-          "Click it to open site permissions",
-          'Find notification settings and change to "Allow"',
-          "Refresh the page and try again",
-        ],
-      };
-    }
-  };
-
   const loadPreferences = async (endpoint) => {
     try {
       const response = await fetch(
@@ -291,47 +179,14 @@ const NotificationManager = () => {
       return;
     }
 
-    // Enhanced pre-check before attempting subscription
-    const availabilityCheck = canGrantNotifications();
-    if (!availabilityCheck.canGrant) {
-      setStatus(`❌ Cannot enable notifications: ${availabilityCheck.reason}`);
-      setShowTroubleshooter(true);
-      return;
-    }
-
     setLoading(true);
     setStatus("Checking permission status...");
 
-    // Add overall timeout for the entire subscription process
     const subscribeWithTimeout = async () => {
       try {
-        // First check current permission status
+        // Check current permission status
         const currentPermission = Notification.permission;
         console.log("Current notification permission:", currentPermission);
-
-        // Check if notifications are supported and available
-        if (!("Notification" in window)) {
-          setStatus("❌ Notifications are not supported in this browser");
-          return;
-        }
-
-        // Check if we're in a secure context (HTTPS or localhost)
-        if (
-          !window.isSecureContext &&
-          window.location.hostname !== "localhost"
-        ) {
-          setStatus(`
-🔒 Notifications require HTTPS
-
-Your connection is not secure. Notifications only work on:
-📍 HTTPS websites (https://)
-📍 Localhost for development
-📍 Secure domains
-
-SOLUTION: Access this site via HTTPS
-          `);
-          return;
-        }
 
         if (currentPermission === "denied") {
           setStatus("❌ Notifications are permanently blocked for this site");
@@ -371,86 +226,33 @@ SOLUTION: Access this site via HTTPS
 
         let permission;
         try {
-          // Enhanced permission request with timeout and error handling
-          permission = await Promise.race([
-            new Promise((resolve) => {
-              // If permission is already determined, don't show redundant prompts
-              if (currentPermission !== "default") {
-                resolve(currentPermission);
-                return;
-              }
-
-              // For default state, request permission with better handling
-              if (typeof Notification.requestPermission === "function") {
-                Notification.requestPermission()
-                  .then(resolve)
-                  .catch(() => {
-                    resolve("denied"); // If request fails, treat as denied
-                  });
-              } else {
-                // Fallback for older browsers
-                resolve("denied");
-              }
-            }),
-            // Timeout after 10 seconds if no response
-            new Promise((resolve) =>
-              setTimeout(() => resolve("timeout"), 10000)
-            ),
-          ]);
+          permission = await Notification.requestPermission();
         } catch (error) {
           console.error("Permission request failed:", error);
-          permission = "denied";
+          setStatus(
+            "Permission request failed. Please check your browser settings."
+          );
+          setShowPermissionHelper(true);
+          setShowTroubleshooter(true);
+          return;
         }
 
         console.log("Notification permission after request:", permission);
 
-        // Handle different permission states with detailed guidance
-        if (permission === "denied") {
-          const instructions = createPermissionInstructions();
-          setStatus(`🚫 Notifications are blocked. ${instructions}`);
-          setShowPermissionHelper(true);
-          setShowTroubleshooter(true);
-          return;
-        } else if (permission === "timeout") {
-          setStatus(`
-⏱️ Permission request timed out
-
-This usually means:
-📍 Browser blocked the permission popup
-� Permission dialog was ignored or closed
-📍 Browser security settings prevent notifications
-
-SOLUTIONS:
-🔧 Check if permission popup was blocked (look for popup blocker icon)
-🔧 Manually enable notifications via browser settings
-🔧 Try refreshing the page and allowing when prompted
-🔧 Use the troubleshooter below for detailed instructions
-          `);
-          setShowPermissionHelper(true);
-          setShowTroubleshooter(true);
-          return;
-        } else if (permission !== "granted") {
+        if (permission !== "granted") {
           setStatus(`
 🔔 Permission not granted (Status: ${permission})
 
-IMMEDIATE FIXES:
+SOLUTIONS:
 📍 Look for a notification permission popup that might be hidden
-📍 Check if your browser blocked the permission request
 📍 Click the 🔒 lock icon next to the website URL
-📍 Find "Notifications" and change to "Allow"
+� Find "Notifications" and change to "Allow"
 📍 Refresh the page and try again
-
-If you don't see permission options:
-🔧 Your browser may have notifications globally disabled
-🔧 Check browser settings → Privacy & Security → Notifications
-🔧 Use the troubleshooter below for step-by-step help
           `);
           setShowPermissionHelper(true);
           setShowTroubleshooter(true);
           return;
         }
-
-        setStatus("Getting configuration...");
 
         // Get VAPID public key
         const keyResponse = await fetch("/api/notifications", {
@@ -725,7 +527,7 @@ If you don't see permission options:
             <button
               onClick={() => setShowTroubleshooter(true)}
               className="text-gray-400 hover:text-gray-600 transition"
-              title="Need help with notifications?"
+              title="Need help with notifications"
             >
               <HelpCircle size={16} />
             </button>
