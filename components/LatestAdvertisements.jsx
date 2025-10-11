@@ -3,34 +3,34 @@
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
+import { trackContentInteraction } from "./AnalyticsTracker";
 
 const advertisementItems = [
   {
     id: 1,
-    title: 'Premium Headphones - 50% Off',
+    title: "Premium Headphones - 50% Off",
     description:
-      'Experience crystal-clear audio with our professional-grade headphones. Limited time offer!',
-    image: '/images/news1.jpg', // ✅ corrected path
-    link: '#',
+      "Experience crystal-clear audio with our professional-grade headphones. Limited time offer!",
+    image: "/images/news1.jpg", // ✅ corrected path
+    link: "#",
   },
   {
     id: 2,
-    title: 'Best Podcast Equipment Bundle',
+    title: "Best Podcast Equipment Bundle",
     description:
-      'Complete podcasting setup including microphone, audio interface, and accessories.',
-    image: '/images/news2.jpg', // ✅
-    link: '#',
+      "Complete podcasting setup including microphone, audio interface, and accessories.",
+    image: "/images/news2.jpg", // ✅
+    link: "#",
   },
   {
     id: 3,
-    title: 'Online Course: Podcast Creation',
+    title: "Online Course: Podcast Creation",
     description:
-      'Learn how to create, edit, and publish professional podcasts with our comprehensive course.',
-    image: '/images/news3.jpg', // ✅
-    link: '#',
+      "Learn how to create, edit, and publish professional podcasts with our comprehensive course.",
+    image: "/images/news3.jpg", // ✅
+    link: "#",
   },
 ];
-
 
 export default function LatestAdvertisements() {
   return (
@@ -68,6 +68,14 @@ export default function LatestAdvertisements() {
               <p className="text-sm text-gray-600 mb-4">{item.description}</p>
               <Link
                 href={item.link}
+                onClick={() =>
+                  trackContentInteraction(
+                    "advertisement",
+                    item.id.toString(),
+                    item.title,
+                    "click"
+                  )
+                }
                 className="text-[#5E5ADB] font-semibold text-sm hover:underline"
               >
                 Read More →

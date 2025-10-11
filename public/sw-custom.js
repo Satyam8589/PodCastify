@@ -17,6 +17,124 @@ cleanupOutdatedCaches();
 // Precache all static assets
 precacheAndRoute(self.__WB_MANIFEST);
 
+// ===== PUSH NOTIFICATION HANDLERS =====
+
+// Handle push notification events
+self.addEventListener("push", function (event) {
+  console.log("Push notification received:", event);
+
+  if (!event.data) {
+    console.log("Push event without data");
+    return;
+  }
+
+  try {
+    const data = event.data.json();
+    console.log("Push notification data:", data);
+
+    const options = {
+      body: data.body,
+      icon: data.icon || "/icon-192x192.png",
+      badge: data.badge || "/icon-96x96.png",
+      image: data.image,
+      data: data.data,
+      actions: data.actions || [],
+      requireInteraction: data.requireInteraction || false,
+      tag: data.tag || "default",
+      timestamp: data.data?.timestamp || Date.now(),
+      vibrate: [200, 100, 200], // Vibration pattern for mobile
+    };
+
+    event.waitUntil(self.registration.showNotification(data.title, options));
+  } catch (error) {
+    console.error("Error handling push notification:", error);
+
+    // Show a fallback notification
+    event.waitUntil(
+      self.registration.showNotification("New Update Available!", {
+        body: "Check out the latest content on PodCastify",
+        icon: "/icon-192x192.png",
+        badge: "/icon-96x96.png",
+        tag: "fallback",
+      })
+    );
+  }
+});
+
+// Handle notification click events
+self.addEventListener("notificationclick", function (event) {
+  console.log("Notification clicked:", event);
+
+  const notification = event.notification;
+  const action = event.action;
+  const data = notification.data || {};
+
+  // Close the notification
+  notification.close();
+
+  if (action === "dismiss") {
+    return; // Just close the notification
+  }
+
+  // Default action or specific action handling
+  let url = "/";
+
+  if (data.url) {
+    url = data.url;
+  } else if (data.type === "podcast" && data.id) {
+    url = `/podcast/${data.id}`;
+  } else if (data.type === "blog" && data.id) {
+    url = `/blogs/${data.id}`;
+  } else if (data.type === "advertisement") {
+    url = "/advertisement";
+  }
+
+  // Handle specific actions
+  if (action === "listen" || action === "read" || action === "view") {
+    // These actions use the default URL
+  }
+
+  // Open the app/page
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then(function (clientList) {
+        // Try to focus existing window
+        for (let i = 0; i < clientList.length; i++) {
+          const client = clientList[i];
+          if (
+            client.url.includes(self.registration.scope) &&
+            "focus" in client
+          ) {
+            return client.focus().then(() => {
+              if ("navigate" in client) {
+                return client.navigate(url);
+              }
+            });
+          }
+        }
+
+        // Open new window
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
+  );
+});
+
+// Handle notification close events
+self.addEventListener("notificationclose", function (event) {
+  console.log("Notification closed:", event);
+
+  // Optional: Track notification close analytics
+  const data = event.notification.data || {};
+  if (data.type) {
+    console.log(`Notification closed: ${data.type}`, data);
+  }
+});
+
+// ===== CACHING STRATEGIES =====
+
 // Cache API responses with network-first strategy
 registerRoute(
   ({ url }) => url.pathname.startsWith("/api/"),

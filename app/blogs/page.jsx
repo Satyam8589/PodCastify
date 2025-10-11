@@ -1,25 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Newsletter from '../../components/Newsletter';
+import { useState, useEffect } from "react";
+import { trackContentInteraction } from "@/components/AnalyticsTracker";
+import Newsletter from "../../components/Newsletter";
 
 const PodcastBlog = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentView, setCurrentView] = useState('blog'); // 'blog' or 'post'
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentView, setCurrentView] = useState("blog"); // 'blog' or 'post'
   const [currentPost, setCurrentPost] = useState(null);
   const [blogPosts, setBlogPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const categories = [
-    { id: 'all', name: 'All Posts', icon: '📚' },
-    { id: 'getting-started', name: 'Getting Started', icon: '🚀' },
-    { id: 'storytelling', name: 'Storytelling', icon: '📖' },
-    { id: 'branding', name: 'Branding', icon: '🎨' },
-    { id: 'monetization', name: 'Monetization', icon: '💰' },
-    { id: 'interviews', name: 'Interviews', icon: '🎤' },
-    { id: 'psychology', name: 'Psychology', icon: '🧠' }
+    { id: "all", name: "All Posts", icon: "📚" },
+    { id: "getting-started", name: "Getting Started", icon: "🚀" },
+    { id: "storytelling", name: "Storytelling", icon: "📖" },
+    { id: "branding", name: "Branding", icon: "🎨" },
+    { id: "monetization", name: "Monetization", icon: "💰" },
+    { id: "interviews", name: "Interviews", icon: "🎤" },
+    { id: "psychology", name: "Psychology", icon: "🧠" },
   ];
 
   // Fetch blog posts from API
@@ -27,31 +28,31 @@ const PodcastBlog = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
-      if (selectedCategory !== 'all') {
-        params.append('category', selectedCategory);
+
+      if (selectedCategory !== "all") {
+        params.append("category", selectedCategory);
       }
-      
+
       if (searchTerm.trim()) {
-        params.append('search', searchTerm.trim());
+        params.append("search", searchTerm.trim());
       }
 
       const response = await fetch(`/api/blog?${params.toString()}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setBlogPosts(result.data || []);
         setError(null);
       } else {
-        throw new Error(result.error || 'Failed to fetch blog posts');
+        throw new Error(result.error || "Failed to fetch blog posts");
       }
     } catch (err) {
-      console.error('Error fetching blog posts:', err);
+      console.error("Error fetching blog posts:", err);
       setError(err.message);
       setBlogPosts([]);
     } finally {
@@ -67,7 +68,7 @@ const PodcastBlog = () => {
   // Debounce search input
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchTerm !== '') {
+      if (searchTerm !== "") {
         fetchBlogPosts();
       }
     }, 500);
@@ -76,38 +77,46 @@ const PodcastBlog = () => {
   }, [searchTerm]);
 
   // Filter and sort posts
-  const featuredPost = selectedCategory === 'all' 
-    ? blogPosts.find(post => post.featured) 
-    : null;
-  
-  const regularPosts = selectedCategory === 'all' 
-    ? blogPosts.filter(post => !post.featured)
-    : blogPosts;
+  const featuredPost =
+    selectedCategory === "all" ? blogPosts.find((post) => post.featured) : null;
+
+  const regularPosts =
+    selectedCategory === "all"
+      ? blogPosts.filter((post) => !post.featured)
+      : blogPosts;
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   const getCategoryColor = (category) => {
     const colors = {
-      'getting-started': 'bg-green-100 text-green-800',
-      'storytelling': 'bg-purple-100 text-purple-800',
-      'branding': 'bg-pink-100 text-pink-800',
-      'monetization': 'bg-yellow-100 text-yellow-800',
-      'interviews': 'bg-blue-100 text-blue-800',
-      'psychology': 'bg-red-100 text-red-800'
+      "getting-started": "bg-green-100 text-green-800",
+      storytelling: "bg-purple-100 text-purple-800",
+      branding: "bg-pink-100 text-pink-800",
+      monetization: "bg-yellow-100 text-yellow-800",
+      interviews: "bg-blue-100 text-blue-800",
+      psychology: "bg-red-100 text-red-800",
     };
-    return colors[category] || 'bg-gray-100 text-gray-800';
+    return colors[category] || "bg-gray-100 text-gray-800";
   };
 
   const handleReadMore = (post) => {
+    // Track the blog click
+    trackContentInteraction(
+      "blog",
+      post._id || post.id || "unknown",
+      post.title,
+      "read"
+    );
+
     setCurrentPost(post);
-    setCurrentView('post');
+    setCurrentView("post");
   };
 
   const handleBackToBlog = () => {
-    setCurrentView('blog');
+    setCurrentView("blog");
     setCurrentPost(null);
   };
 
@@ -117,7 +126,7 @@ const PodcastBlog = () => {
 
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory(categoryId);
-    setSearchTerm(''); // Clear search when changing categories
+    setSearchTerm(""); // Clear search when changing categories
   };
 
   // Loading component
@@ -132,9 +141,11 @@ const PodcastBlog = () => {
   const ErrorMessage = () => (
     <div className="text-center py-16">
       <div className="text-6xl mb-4">⚠️</div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h3>
+      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+        Something went wrong
+      </h3>
       <p className="text-gray-600 mb-4">{error}</p>
-      <button 
+      <button
         onClick={fetchBlogPosts}
         className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3 rounded-full font-medium hover:from-violet-700 hover:to-indigo-700 transition-all duration-300"
       >
@@ -144,7 +155,7 @@ const PodcastBlog = () => {
   );
 
   // Individual Post View
-  if (currentView === 'post' && currentPost) {
+  if (currentView === "post" && currentPost) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
         {/* Header */}
@@ -157,10 +168,22 @@ const PodcastBlog = () => {
               ← Back to Blog
             </button>
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(currentPost.category)}`}>
-                {categories.find(cat => cat.id === currentPost.category)?.icon} {currentPost.category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(
+                  currentPost.category
+                )}`}
+              >
+                {
+                  categories.find((cat) => cat.id === currentPost.category)
+                    ?.icon
+                }{" "}
+                {currentPost.category
+                  .replace("-", " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase())}
               </span>
-              <span className="text-gray-300 text-sm">{currentPost.readTime}</span>
+              <span className="text-gray-300 text-sm">
+                {currentPost.readTime}
+              </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
               {currentPost.title}
@@ -173,7 +196,9 @@ const PodcastBlog = () => {
                 <span>{currentPost.author}</span>
               </div>
               <span>•</span>
-              <span>{formatDate(currentPost.date)} at {currentPost.time}</span>
+              <span>
+                {formatDate(currentPost.date)} at {currentPost.time}
+              </span>
             </div>
           </div>
         </div>
@@ -187,28 +212,36 @@ const PodcastBlog = () => {
               className="w-full h-64 md:h-80 object-cover"
             />
             <div className="p-8 md:p-12">
-              <div 
+              <div
                 className="prose prose-lg max-w-none"
                 dangerouslySetInnerHTML={{ __html: currentPost.content }}
               />
-              
+
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <div className="flex flex-wrap gap-2 mb-6">
                   {currentPost.tags?.map((tag) => (
-                    <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium"
+                    >
                       #{tag}
                     </span>
                   ))}
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
                       {currentPost.author.charAt(0)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{currentPost.author}</p>
-                      <p className="text-gray-500 text-sm">Published on {formatDate(currentPost.date)} at {currentPost.time}</p>
+                      <p className="font-medium text-gray-900">
+                        {currentPost.author}
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        Published on {formatDate(currentPost.date)} at{" "}
+                        {currentPost.time}
+                      </p>
                     </div>
                   </div>
                   <button
@@ -232,22 +265,26 @@ const PodcastBlog = () => {
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-violet-900 via-purple-900 to-indigo-900">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}></div>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          ></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
               Podcast
               <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
-                {" "}Blog
+                {" "}
+                Blog
               </span>
             </h1>
             <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed mb-8">
               Insights, tips, and stories from the world of podcasting
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-md mx-auto">
               <div className="relative">
@@ -277,8 +314,8 @@ const PodcastBlog = () => {
               disabled={loading}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                 selectedCategory === category.id
-                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/25'
-                  : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm'
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/25"
+                  : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm"
               }`}
             >
               <span>{category.icon}</span>
@@ -317,10 +354,23 @@ const PodcastBlog = () => {
                   </div>
                   <div className="p-8 lg:p-12 flex flex-col justify-center">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(featuredPost.category)}`}>
-                        {categories.find(cat => cat.id === featuredPost.category)?.icon} {featuredPost.category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(
+                          featuredPost.category
+                        )}`}
+                      >
+                        {
+                          categories.find(
+                            (cat) => cat.id === featuredPost.category
+                          )?.icon
+                        }{" "}
+                        {featuredPost.category
+                          .replace("-", " ")
+                          .replace(/\b\w/g, (l) => l.toUpperCase())}
                       </span>
-                      <span className="text-gray-500 text-sm">{featuredPost.readTime}</span>
+                      <span className="text-gray-500 text-sm">
+                        {featuredPost.readTime}
+                      </span>
                     </div>
                     <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight group-hover:text-violet-600 transition-colors duration-300">
                       {featuredPost.title}
@@ -330,7 +380,10 @@ const PodcastBlog = () => {
                     </p>
                     <div className="flex flex-wrap gap-2 mb-6">
                       {featuredPost.tags?.map((tag) => (
-                        <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                        <span
+                          key={tag}
+                          className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium"
+                        >
                           #{tag}
                         </span>
                       ))}
@@ -341,11 +394,16 @@ const PodcastBlog = () => {
                           {featuredPost.author.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{featuredPost.author}</p>
-                          <p className="text-gray-500 text-sm">{formatDate(featuredPost.date)} at {featuredPost.time}</p>
+                          <p className="font-medium text-gray-900">
+                            {featuredPost.author}
+                          </p>
+                          <p className="text-gray-500 text-sm">
+                            {formatDate(featuredPost.date)} at{" "}
+                            {featuredPost.time}
+                          </p>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={() => handleReadMore(featuredPost)}
                         className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-3 rounded-full font-medium hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                       >
@@ -376,44 +434,61 @@ const PodcastBlog = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       <div className="absolute top-4 left-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.category)}`}>
-                          {categories.find(cat => cat.id === post.category)?.icon} {post.category.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+                            post.category
+                          )}`}
+                        >
+                          {
+                            categories.find((cat) => cat.id === post.category)
+                              ?.icon
+                          }{" "}
+                          {post.category
+                            .replace("-", " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="p-6">
                       <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                        <span>{formatDate(post.date)} at {post.time}</span>
+                        <span>
+                          {formatDate(post.date)} at {post.time}
+                        </span>
                         <span>•</span>
                         <span>{post.readTime}</span>
                       </div>
-                      
+
                       <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-violet-600 transition-colors duration-300">
                         {post.title}
                       </h3>
-                      
+
                       <p className="text-gray-600 mb-4 leading-relaxed">
                         {post.excerpt}
                       </p>
 
                       <div className="flex flex-wrap gap-1 mb-4">
                         {post.tags?.slice(0, 3).map((tag) => (
-                          <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                          <span
+                            key={tag}
+                            className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+                          >
                             #{tag}
                           </span>
                         ))}
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
                             {post.author.charAt(0)}
                           </div>
-                          <span className="text-sm font-medium text-gray-700">{post.author}</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            {post.author}
+                          </span>
                         </div>
-                        
-                        <button 
+
+                        <button
                           onClick={() => handleReadMore(post)}
                           className="text-violet-600 hover:text-violet-800 font-medium text-sm hover:underline transition-colors duration-200 flex items-center gap-1"
                         >
@@ -428,12 +503,13 @@ const PodcastBlog = () => {
               /* No Results Message */
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">No posts found</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  No posts found
+                </h3>
                 <p className="text-gray-600">
-                  {searchTerm 
+                  {searchTerm
                     ? `No posts match "${searchTerm}". Try adjusting your search.`
-                    : 'No posts available in this category.'
-                  }
+                    : "No posts available in this category."}
                 </p>
               </div>
             )}
@@ -443,7 +519,6 @@ const PodcastBlog = () => {
 
       {/* Newsletter Section */}
       <Newsletter />
-
     </div>
   );
 };

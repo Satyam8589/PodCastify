@@ -17,6 +17,7 @@ import {
   extractYouTubeVideoId,
   generateYouTubeEmbedUrl,
 } from "../../../lib/youtube";
+import MobileLandscapePlayer from "../../../components/MobileLandscapePlayer";
 
 // YouTube Player Component
 const YouTubePlayer = ({ videoId, title }) => {
@@ -59,6 +60,7 @@ const PodcastDetailPage = () => {
   const [copied, setCopied] = useState(false);
 
   const podcastId = params.id;
+  const videoId = podcast ? extractYouTubeVideoId(podcast.podcastLink) : null;
 
   // Fetch individual podcast
   useEffect(() => {
@@ -174,8 +176,6 @@ const PodcastDetailPage = () => {
     );
   }
 
-  const videoId = extractYouTubeVideoId(podcast.podcastLink);
-
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -217,7 +217,7 @@ const PodcastDetailPage = () => {
           {/* Video Player Section */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <YouTubePlayer videoId={videoId} title={podcast.title} />
+              <MobileLandscapePlayer videoId={videoId} title={podcast.title} />
             </div>
 
             {/* Podcast Info */}

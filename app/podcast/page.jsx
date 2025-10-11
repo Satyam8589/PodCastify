@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Play, ExternalLink, Calendar, Clock, Loader2 } from "lucide-react";
+import { trackContentInteraction } from "@/components/AnalyticsTracker";
 
 const PodcastPage = () => {
   const [podcasts, setPodcasts] = useState([]);
@@ -149,6 +150,9 @@ const PodcastPage = () => {
   // Handle podcast link click
   const handlePodcastClick = (podcastId, title) => {
     console.log("handlePodcastClick called with:", { podcastId, title });
+
+    // Track the podcast click
+    trackContentInteraction("podcast", podcastId || "unknown", title, "click");
 
     if (podcastId && podcastId !== "#" && podcastId !== "") {
       // Navigate to individual podcast page

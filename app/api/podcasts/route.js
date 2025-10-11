@@ -265,6 +265,61 @@ export async function POST(request) {
 
     console.log("New podcast created successfully:", savedPodcast._id);
 
+    // Send push notifications to subscribers
+    try {
+      const { sendPushNotificationToAll, createPodcastNotification } =
+        await import("../../../lib/pushNotification");
+      const NotificationSubscription = (
+        await import("../../../lib/models/NotificationSubscription")
+      ).default;
+
+      // Get all active subscribers who want podcast notifications
+      const activeSubscriptions =
+        await NotificationSubscription.getActiveSubscriptionsFor("podcasts");
+
+      if (activeSubscriptions.length > 0) {
+        console.log(
+          `Sending push notifications to ${activeSubscriptions.length} subscribers`
+        );
+
+        // Create notification payload
+        const notificationPayload = createPodcastNotification({
+          id: savedPodcast._id.toString(),
+          title: savedPodcast.title,
+          description: savedPodcast.description,
+          thumbnail: savedPodcast.thumbnail,
+        });
+
+        // Send notifications to all subscribers
+        const notificationResults = await sendPushNotificationToAll(
+          activeSubscriptions.map((sub) => ({
+            endpoint: sub.endpoint,
+            keys: sub.keys,
+          })),
+          notificationPayload
+        );
+
+        console.log("Push notification results:", notificationResults);
+
+        // Update last notified timestamp for successful notifications
+        const successfulEndpoints = notificationResults
+          .filter((result) => result.success)
+          .map((result) => result.subscription);
+
+        if (successfulEndpoints.length > 0) {
+          await NotificationSubscription.updateMany(
+            { endpoint: { $in: successfulEndpoints } },
+            { lastNotified: new Date() }
+          );
+        }
+      } else {
+        console.log("No active podcast subscribers found");
+      }
+    } catch (notificationError) {
+      console.error("Error sending push notifications:", notificationError);
+      // Don't fail the podcast creation if notifications fail
+    }
+
     return NextResponse.json({
       success: true,
       message: "Podcast uploaded successfully!",

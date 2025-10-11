@@ -306,6 +306,69 @@ export async function POST(request) {
       savedAdvertisement._id
     );
 
+    // Send push notifications to subscribers
+    try {
+      const { sendPushNotificationToAll, createAdvertisementNotification } =
+        await import("../../../lib/pushNotification");
+      const NotificationSubscription = (
+        await import("../../../lib/models/NotificationSubscription")
+      ).default;
+
+      // Get all active subscribers who want advertisement notifications
+      const activeSubscriptions =
+        await NotificationSubscription.getActiveSubscriptionsFor(
+          "advertisements"
+        );
+
+      if (activeSubscriptions.length > 0) {
+        console.log(
+          `Sending advertisement push notifications to ${activeSubscriptions.length} subscribers`
+        );
+
+        // Create notification payload
+        const notificationPayload = createAdvertisementNotification({
+          id: savedAdvertisement._id.toString(),
+          title: savedAdvertisement.title,
+          description: savedAdvertisement.description,
+          image: savedAdvertisement.image,
+        });
+
+        // Send notifications to all subscribers
+        const notificationResults = await sendPushNotificationToAll(
+          activeSubscriptions.map((sub) => ({
+            endpoint: sub.endpoint,
+            keys: sub.keys,
+          })),
+          notificationPayload
+        );
+
+        console.log(
+          "Advertisement push notification results:",
+          notificationResults
+        );
+
+        // Update last notified timestamp for successful notifications
+        const successfulEndpoints = notificationResults
+          .filter((result) => result.success)
+          .map((result) => result.subscription);
+
+        if (successfulEndpoints.length > 0) {
+          await NotificationSubscription.updateMany(
+            { endpoint: { $in: successfulEndpoints } },
+            { lastNotified: new Date() }
+          );
+        }
+      } else {
+        console.log("No active advertisement subscribers found");
+      }
+    } catch (notificationError) {
+      console.error(
+        "Error sending advertisement push notifications:",
+        notificationError
+      );
+      // Don't fail the advertisement creation if notifications fail
+    }
+
     return NextResponse.json({
       success: true,
       message: "Advertisement created successfully!",

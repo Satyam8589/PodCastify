@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#7C3AED",
   "theme_color": "#7C3AED",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "categories": ["entertainment", "news", "education"],
   "icons": [
     {

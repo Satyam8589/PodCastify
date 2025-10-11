@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import PWAFeatures from "@/components/PWAFeatures";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LayoutWrapper>{children}</LayoutWrapper>
+        <AnalyticsTracker />
         <PWAFeatures />
         <Toaster position="top-center" />
       </body>

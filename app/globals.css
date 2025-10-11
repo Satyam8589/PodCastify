@@ -2,3 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile landscape video support */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+  .landscape-fullscreen {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  /* Hide browser UI when in landscape fullscreen */
+  .landscape-fullscreen iframe {
+    width: 100vw;
+    height: 100vh;
+  }
+}
+
+/* Smooth orientation transitions */
+.orientation-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Fullscreen video controls */
+.fullscreen-controls {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
