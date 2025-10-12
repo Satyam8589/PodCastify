@@ -5,7 +5,6 @@ import ContactForm from "@/components/ContactForm";
 import Button from "@/components/Button";
 import About from "@/components/About";
 import LatestBlogs from "@/components/LatestBlogs";
-import NotificationManager from "@/components/NotificationManager";
 import Image from "next/image";
 import React from "react";
 import "./globals.css";
@@ -76,16 +75,6 @@ export default function Home() {
 
       {/* Newsletter */}
       <Newsletter />
-
-      {/* Push Notifications */}
-      <section className="max-w-5xl mx-auto px-4 py-12">
-        <h2 className="text-3xl font-bold mb-6 text-center">Stay Updated</h2>
-        <p className="text-center text-gray-600 mb-8">
-          Get instant notifications when we publish new podcasts, blogs, or
-          advertisements
-        </p>
-        <NotificationManager />
-      </section>
 
       {/* Contact */}
       <section id="contact" className="max-w-5xl mx-auto px-4 py-12">

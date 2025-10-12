@@ -1,32 +1,55 @@
-'use client';
-import React, { useState } from 'react';
-import toast from 'react-hot-toast';
+"use client";
+import React, { useState } from "react";
+import toast from "react-hot-toast";
 
 const Newsletter = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
-    if (!email.includes('@gmail.com')) {
-      toast.error('Please enter a valid Gmail address');
+    console.log("Subscribe button clicked, email:", email);
+
+    // Simple alert for testing
+    alert("Button clicked! Email: " + email);
+
+    if (!email) {
+      toast.error("Please enter an email address");
+      return;
+    }
+
+    if (!email.includes("@gmail.com")) {
+      toast.error("Please enter a valid Gmail address");
       return;
     }
 
     setLoading(true);
+    console.log("Making API request to /api/subscribers");
 
-    const res = await fetch('/api/subscribers', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const res = await fetch("/api/subscribers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
-    const data = await res.json();
-    setLoading(false);
+      console.log("API response status:", res.status);
+      const data = await res.json();
+      console.log("API response data:", data);
 
-    if (data.success) {
-      toast.success('🎉 Thank you for subscribing!');
-      setEmail('');
-    } else {
-      toast.error(data.message || 'Something went wrong');
+      setLoading(false);
+
+      if (data.success) {
+        toast.success("🎉 Thank you for subscribing!");
+        setEmail("");
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("API request failed:", error);
+      setLoading(false);
+      toast.error("Network error. Please try again.");
     }
   };
 
@@ -45,14 +68,26 @@ const Newsletter = () => {
             placeholder="Enter your Gmail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSubscribe();
+              }
+            }}
             className="flex-1 px-6 py-4 rounded-full border-0 focus:ring-4 focus:ring-white/20 focus:outline-none text-gray-900 bg-white/90 backdrop-blur-sm"
           />
           <button
-            onClick={handleSubscribe}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("Button clicked!");
+              handleSubscribe();
+            }}
             disabled={loading}
-            className="bg-gradient-to-r from-pink-500 to-violet-500 text-white px-8 py-4 rounded-full font-bold hover:from-pink-600 hover:to-violet-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="bg-gradient-to-r from-pink-500 to-violet-500 text-white px-8 py-4 rounded-full font-bold hover:from-pink-600 hover:to-violet-600 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Subscribing...' : 'Subscribe'}
+            {loading ? "Subscribing..." : "Subscribe"}
           </button>
         </div>
       </div>
