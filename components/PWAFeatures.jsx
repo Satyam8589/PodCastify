@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Download, Wifi, WifiOff, X } from "lucide-react";
+import { Download, Wifi, WifiOff, X, Shield, Smartphone } from "lucide-react";
 
 const PWAFeatures = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -9,6 +9,7 @@ const PWAFeatures = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showOnlineNotification, setShowOnlineNotification] = useState(false);
+  const [showManualInstallInfo, setShowManualInstallInfo] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed
@@ -20,9 +21,27 @@ const PWAFeatures = () => {
 
     // Handle PWA install prompt
     const handleBeforeInstallPrompt = (e) => {
+      console.log("beforeinstallprompt event fired");
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallPrompt(true);
+      
+      // Check if we're on localhost or HTTPS
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isHTTPS = window.location.protocol === 'https:';
+      
+      console.log("PWA Install Check:", {
+        hostname: window.location.hostname,
+        protocol: window.location.protocol,
+        isLocalhost,
+        isHTTPS,
+        canShowPrompt: isLocalhost || isHTTPS
+      });
+      
+      if (isLocalhost || isHTTPS) {
+        setShowInstallPrompt(true);
+      } else {
+        console.warn("PWA install prompt blocked: HTTPS required for network access");
+      }
     };
 
     // Handle online/offline status
@@ -38,6 +57,7 @@ const PWAFeatures = () => {
 
     // Handle app installed
     const handleAppInstalled = () => {
+      console.log("App installed successfully");
       setIsInstalled(true);
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
@@ -52,6 +72,25 @@ const PWAFeatures = () => {
     // Initial checks
     checkInstalled();
     handleOnlineStatus();
+    
+    // Register service worker manually if needed
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered successfully:', registration);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+    
+    // Log PWA readiness info
+    console.log("PWA Readiness Check:", {
+      serviceWorker: 'serviceWorker' in navigator,
+      manifest: document.querySelector('link[rel="manifest"]') !== null,
+      isSecureContext: window.isSecureContext,
+      location: window.location.href
+    });
 
     return () => {
       window.removeEventListener(
@@ -95,7 +134,26 @@ const PWAFeatures = () => {
         setShowInstallPrompt(false);
       }
     }
-  }, []);
+
+    // Show manual install info if not localhost and not HTTPS
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isHTTPS = window.location.protocol === 'https:';
+    
+    if (!isLocalhost && !isHTTPS && !isInstalled) {
+      // Delay showing manual install info to avoid overwhelming the user
+      setTimeout(() => {
+        const manualDismissed = localStorage.getItem("manual-install-dismissed");
+        if (!manualDismissed) {
+          setShowManualInstallInfo(true);
+        }
+      }, 5000);
+    }
+  }, [isInstalled]);
+
+  const dismissManualInstallInfo = () => {
+    setShowManualInstallInfo(false);
+    localStorage.setItem("manual-install-dismissed", Date.now().toString());
+  };
 
   return (
     <>
@@ -163,6 +221,65 @@ const PWAFeatures = () => {
               className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
             >
               Not now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Install Instructions (for non-HTTPS network access) */}
+      {showManualInstallInfo && !isInstalled && (
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-blue-50 border border-blue-200 rounded-lg shadow-lg p-4 z-50">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-blue-900">
+                  Install PodCastify App
+                </h4>
+                <p className="text-sm text-blue-700">Manual Installation Guide</p>
+              </div>
+            </div>
+            <button
+              onClick={dismissManualInstallInfo}
+              className="text-blue-400 hover:text-blue-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="space-y-3 text-sm text-blue-800">
+            <div className="flex items-start gap-2">
+              <Shield className="w-4 h-4 mt-0.5 text-blue-600" />
+              <div>
+                <p className="font-medium">HTTPS Required</p>
+                <p className="text-xs text-blue-600">
+                  PWA installation requires a secure connection when accessed over the network.
+                </p>
+              </div>
+            </div>
+            
+            <div className="border-t border-blue-200 pt-3">
+              <p className="font-medium mb-2">Manual Installation Steps:</p>
+              <div className="space-y-1 text-xs">
+                <p><strong>Chrome/Edge:</strong> Menu → "Install PodCastify" or "Add to Home Screen"</p>
+                <p><strong>Safari:</strong> Share button → "Add to Home Screen"</p>
+                <p><strong>Firefox:</strong> Menu → "Install" (if available)</p>
+              </div>
+            </div>
+            
+            <div className="bg-blue-100 rounded p-2 text-xs">
+              <p><strong>Tip:</strong> For the best experience, access this site via HTTPS or deploy to a secure hosting platform.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={dismissManualInstallInfo}
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              Got it
             </button>
           </div>
         </div>

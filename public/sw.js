@@ -1,106 +1,100 @@
-// Simple Service Worker for PodCastify Push Notifications
-console.log("PodCastify Service Worker starting...");
+/**
+ * Copyright 2018 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-// Install event
-self.addEventListener("install", function (event) {
-  console.log("Service Worker installing...");
-  self.skipWaiting();
-});
+// If the loader is already loaded, just stop.
+if (!self.define) {
+  let registry = {};
 
-// Activate event
-self.addEventListener("activate", function (event) {
-  console.log("Service Worker activating...");
-  event.waitUntil(clients.claim());
-});
+  // Used for `eval` and `importScripts` where we can't get script URL by other means.
+  // In both cases, it's safe to use a global var because those functions are synchronous.
+  let nextDefineUri;
 
-// Push notification event handler
-self.addEventListener("push", function (event) {
-  console.log("Push notification received:", event);
-
-  if (!event.data) {
-    console.log("Push event without data");
-    return;
-  }
-
-  try {
-    const data = event.data.json();
-    console.log("Push notification data:", data);
-
-    const options = {
-      body: data.body,
-      icon: data.icon || "/web-app-manifest-192x192.png",
-      badge: data.badge || "/favicon-96x96.jpg",
-      image: data.image,
-      data: data.data,
-      actions: data.actions || [],
-      requireInteraction: data.requireInteraction || false,
-      tag: data.tag || "default",
-      timestamp: data.data?.timestamp || Date.now(),
-      vibrate: [200, 100, 200], // Vibration pattern for mobile
-    };
-
-    event.waitUntil(self.registration.showNotification(data.title, options));
-  } catch (error) {
-    console.error("Error handling push notification:", error);
-
-    // Show a fallback notification
-    event.waitUntil(
-      self.registration.showNotification("New Update Available!", {
-        body: "Check out the latest content on PodCastify",
-        icon: "/web-app-manifest-192x192.png",
-        badge: "/favicon-96x96.jpg",
-        tag: "fallback",
-      })
-    );
-  }
-});
-
-// Handle notification click events
-self.addEventListener("notificationclick", function (event) {
-  console.log("Notification clicked:", event);
-
-  const notification = event.notification;
-  const data = notification.data || {};
-
-  notification.close();
-
-  // Handle different actions
-  if (
-    event.action === "listen" ||
-    event.action === "read" ||
-    event.action === "view"
-  ) {
-    // Open the specific content
-    const url = data.url || "/";
-    event.waitUntil(clients.openWindow(url));
-  } else if (event.action === "dismiss") {
-    // Just close the notification (already done above)
-    console.log("Notification dismissed");
-  } else {
-    // Default click action - open the app
-    const url = data.url || "/";
-    event.waitUntil(
-      clients.matchAll().then(function (clientList) {
-        // Check if there's already a window/tab open
-        for (let i = 0; i < clientList.length; i++) {
-          const client = clientList[i];
-          if (client.url === url && "focus" in client) {
-            return client.focus();
+  const singleRequire = (uri, parentUri) => {
+    uri = new URL(uri + ".js", parentUri).href;
+    return registry[uri] || (
+      
+        new Promise(resolve => {
+          if ("document" in self) {
+            const script = document.createElement("script");
+            script.src = uri;
+            script.onload = resolve;
+            document.head.appendChild(script);
+          } else {
+            nextDefineUri = uri;
+            importScripts(uri);
+            resolve();
           }
+        })
+      
+      .then(() => {
+        let promise = registry[uri];
+        if (!promise) {
+          throw new Error(`Module ${uri} didn’t register its module`);
         }
-        // If no window/tab is open, open a new one
-        if (clients.openWindow) {
-          return clients.openWindow(url);
-        }
+        return promise;
       })
     );
-  }
-});
+  };
 
-// Handle notification close events
-self.addEventListener("notificationclose", function (event) {
-  console.log("Notification closed:", event);
-  // You could track notification close events here if needed
-});
+  self.define = (depsNames, factory) => {
+    const uri = nextDefineUri || ("document" in self ? document.currentScript.src : "") || location.href;
+    if (registry[uri]) {
+      // Module is already loading or loaded.
+      return;
+    }
+    let exports = {};
+    const require = depUri => singleRequire(depUri, uri);
+    const specialDeps = {
+      module: { uri },
+      exports,
+      require
+    };
+    registry[uri] = Promise.all(depsNames.map(
+      depName => specialDeps[depName] || require(depName)
+    )).then(deps => {
+      factory(...deps);
+      return exports;
+    });
+  };
+}
+define(['./workbox-e43f5367'], (function (workbox) { 'use strict';
 
-console.log("PodCastify Service Worker loaded successfully!");
+  importScripts();
+  self.skipWaiting();
+  workbox.clientsClaim();
+  workbox.registerRoute("/", new workbox.NetworkFirst({
+    "cacheName": "start-url",
+    plugins: [{
+      cacheWillUpdate: async ({
+        request,
+        response,
+        event,
+        state
+      }) => {
+        if (response && response.type === 'opaqueredirect') {
+          return new Response(response.body, {
+            status: 200,
+            statusText: 'OK',
+            headers: response.headers
+          });
+        }
+        return response;
+      }
+    }]
+  }), 'GET');
+  workbox.registerRoute(/.*/i, new workbox.NetworkOnly({
+    "cacheName": "dev",
+    plugins: []
+  }), 'GET');
+
+}));
