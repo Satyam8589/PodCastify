@@ -15,7 +15,6 @@ import {
   Smartphone,
   Tablet,
   Chrome,
-  Firefox,
   Compass,
   BarChart3,
   RefreshCw,
@@ -113,6 +112,44 @@ const AnalyticsDashboard = () => {
 
   const renderOverview = () => (
     <div className="space-y-6">
+      {/* Overall Stats Row */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <BarChart3 className="mr-2 text-purple-500" size={20} />
+          Overall Statistics
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Visitors"
+            value={formatNumber(analytics?.visitors?.overall?.uniqueVisitors)}
+            subtitle="All time"
+            icon={Users}
+            color="border-l-purple-500"
+          />
+          <StatCard
+            title="Total Blogs"
+            value={analytics?.contentCounts?.blogs || 0}
+            subtitle="Published"
+            icon={BookOpen}
+            color="border-l-yellow-500"
+          />
+          <StatCard
+            title="Total Podcasts"
+            value={analytics?.contentCounts?.podcasts || 0}
+            subtitle="Available"
+            icon={Mic}
+            color="border-l-red-500"
+          />
+          <StatCard
+            title="Total Ads"
+            value={analytics?.contentCounts?.advertisements || 0}
+            subtitle="Active"
+            icon={Megaphone}
+            color="border-l-indigo-500"
+          />
+        </div>
+      </div>
+
       {/* Visitor Stats */}
       <div>
         <h3 className="text-lg font-semibold mb-4 flex items-center">
@@ -128,7 +165,11 @@ const AnalyticsDashboard = () => {
             } total visits`}
             icon={Calendar}
             color="border-l-blue-500"
-            trend="+12.5%"
+            trend={
+              analytics?.trends?.weeklyGrowth > 0
+                ? `+${analytics.trends.weeklyGrowth}%`
+                : `${analytics?.trends?.weeklyGrowth || 0}%`
+            }
           />
           <StatCard
             title="This Week"
@@ -138,7 +179,11 @@ const AnalyticsDashboard = () => {
             } total visits`}
             icon={Clock}
             color="border-l-green-500"
-            trend="+8.3%"
+            trend={
+              analytics?.trends?.weeklyGrowth > 0
+                ? `+${analytics.trends.weeklyGrowth}%`
+                : `${analytics?.trends?.weeklyGrowth || 0}%`
+            }
           />
           <StatCard
             title="This Month"
@@ -148,7 +193,11 @@ const AnalyticsDashboard = () => {
             } total visits`}
             icon={BarChart3}
             color="border-l-purple-500"
-            trend="+15.7%"
+            trend={
+              analytics?.trends?.monthlyGrowth > 0
+                ? `+${analytics.trends.monthlyGrowth}%`
+                : `${analytics?.trends?.monthlyGrowth || 0}%`
+            }
           />
         </div>
       </div>
@@ -322,7 +371,7 @@ const AnalyticsDashboard = () => {
                     <Chrome className="text-blue-500" size={20} />
                   )}
                   {browser === "firefox" && (
-                    <Firefox className="text-orange-500" size={20} />
+                    <Globe className="text-orange-500" size={20} />
                   )}
                   {browser === "safari" && (
                     <Compass className="text-blue-400" size={20} />
