@@ -24,23 +24,27 @@ const PWAFeatures = () => {
       console.log("beforeinstallprompt event fired");
       e.preventDefault();
       setDeferredPrompt(e);
-      
+
       // Check if we're on localhost or HTTPS
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const isHTTPS = window.location.protocol === 'https:';
-      
+      const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+      const isHTTPS = window.location.protocol === "https:";
+
       console.log("PWA Install Check:", {
         hostname: window.location.hostname,
         protocol: window.location.protocol,
         isLocalhost,
         isHTTPS,
-        canShowPrompt: isLocalhost || isHTTPS
+        canShowPrompt: isLocalhost || isHTTPS,
       });
-      
+
       if (isLocalhost || isHTTPS) {
         setShowInstallPrompt(true);
       } else {
-        console.warn("PWA install prompt blocked: HTTPS required for network access");
+        console.warn(
+          "PWA install prompt blocked: HTTPS required for network access"
+        );
       }
     };
 
@@ -72,24 +76,25 @@ const PWAFeatures = () => {
     // Initial checks
     checkInstalled();
     handleOnlineStatus();
-    
+
     // Register service worker manually if needed
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
         .then((registration) => {
-          console.log('Service Worker registered successfully:', registration);
+          console.log("Service Worker registered successfully:", registration);
         })
         .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+          console.error("Service Worker registration failed:", error);
         });
     }
-    
+
     // Log PWA readiness info
     console.log("PWA Readiness Check:", {
-      serviceWorker: 'serviceWorker' in navigator,
+      serviceWorker: "serviceWorker" in navigator,
       manifest: document.querySelector('link[rel="manifest"]') !== null,
       isSecureContext: window.isSecureContext,
-      location: window.location.href
+      location: window.location.href,
     });
 
     return () => {
@@ -136,13 +141,17 @@ const PWAFeatures = () => {
     }
 
     // Show manual install info if not localhost and not HTTPS
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const isHTTPS = window.location.protocol === 'https:';
-    
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    const isHTTPS = window.location.protocol === "https:";
+
     if (!isLocalhost && !isHTTPS && !isInstalled) {
       // Delay showing manual install info to avoid overwhelming the user
       setTimeout(() => {
-        const manualDismissed = localStorage.getItem("manual-install-dismissed");
+        const manualDismissed = localStorage.getItem(
+          "manual-install-dismissed"
+        );
         if (!manualDismissed) {
           setShowManualInstallInfo(true);
         }
@@ -238,7 +247,9 @@ const PWAFeatures = () => {
                 <h4 className="font-semibold text-blue-900">
                   Install PodCastify App
                 </h4>
-                <p className="text-sm text-blue-700">Manual Installation Guide</p>
+                <p className="text-sm text-blue-700">
+                  Manual Installation Guide
+                </p>
               </div>
             </div>
             <button
@@ -255,22 +266,33 @@ const PWAFeatures = () => {
               <div>
                 <p className="font-medium">HTTPS Required</p>
                 <p className="text-xs text-blue-600">
-                  PWA installation requires a secure connection when accessed over the network.
+                  PWA installation requires a secure connection when accessed
+                  over the network.
                 </p>
               </div>
             </div>
-            
+
             <div className="border-t border-blue-200 pt-3">
               <p className="font-medium mb-2">Manual Installation Steps:</p>
               <div className="space-y-1 text-xs">
-                <p><strong>Chrome/Edge:</strong> Menu → "Install PodCastify" or "Add to Home Screen"</p>
-                <p><strong>Safari:</strong> Share button → "Add to Home Screen"</p>
-                <p><strong>Firefox:</strong> Menu → "Install" (if available)</p>
+                <p>
+                  <strong>Chrome/Edge:</strong> Menu → "Install PodCastify" or
+                  "Add to Home Screen"
+                </p>
+                <p>
+                  <strong>Safari:</strong> Share button → "Add to Home Screen"
+                </p>
+                <p>
+                  <strong>Firefox:</strong> Menu → "Install" (if available)
+                </p>
               </div>
             </div>
-            
+
             <div className="bg-blue-100 rounded p-2 text-xs">
-              <p><strong>Tip:</strong> For the best experience, access this site via HTTPS or deploy to a secure hosting platform.</p>
+              <p>
+                <strong>Tip:</strong> For the best experience, access this site
+                via HTTPS or deploy to a secure hosting platform.
+              </p>
             </div>
           </div>
 
