@@ -278,7 +278,8 @@ const AdminUploadPage = () => {
             "targetAudience",
             formData.targetAudience.trim()
           );
-        if (formData.budget) formDataToSend.append("budget", formData.budget);
+        if (formData.budget && formData.budget.trim())
+          formDataToSend.append("budget", formData.budget.trim());
         if (formData.startDate)
           formDataToSend.append("startDate", formData.startDate);
         if (formData.endDate)
@@ -629,17 +630,28 @@ const AdminUploadPage = () => {
               {/* Description/Excerpt */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {contentType === "podcast" ? "Description" : "Excerpt"} *
+                  {contentType === "podcast"
+                    ? "Description"
+                    : contentType === "advertisement"
+                    ? "Description"
+                    : "Excerpt"}{" "}
+                  *
                 </label>
                 <textarea
                   value={
                     contentType === "podcast"
                       ? formData.description
+                      : contentType === "advertisement"
+                      ? formData.description
                       : formData.excerpt
                   }
                   onChange={(e) =>
                     handleInputChange(
-                      contentType === "podcast" ? "description" : "excerpt",
+                      contentType === "podcast"
+                        ? "description"
+                        : contentType === "advertisement"
+                        ? "description"
+                        : "excerpt",
                       e.target.value
                     )
                   }
@@ -648,6 +660,8 @@ const AdminUploadPage = () => {
                   placeholder={
                     contentType === "podcast"
                       ? "Brief description of the episode"
+                      : contentType === "advertisement"
+                      ? "Detailed description of the advertisement"
                       : "Brief excerpt for the blog post"
                   }
                   required

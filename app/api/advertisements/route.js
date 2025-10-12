@@ -101,9 +101,17 @@ export async function GET(request) {
     }
 
     // Filter by date range (only show active campaigns)
-    const now = new Date();
-    query.startDate = { $lte: now };
-    query.endDate = { $gte: now };
+    // TEMPORARILY DISABLED for testing
+    // const now = new Date();
+    // console.log("Date filtering:", {
+    //   now: now.toISOString(),
+    //   startDateFilter: { $lte: now },
+    //   endDateFilter: { $gte: now }
+    // });
+    // query.startDate = { $lte: now };
+    // query.endDate = { $gte: now };
+
+    console.log("Final query:", JSON.stringify(query, null, 2));
 
     let mongoQuery = Advertisement.find(query);
 
@@ -286,7 +294,24 @@ export async function POST(request) {
 
     // Add optional fields
     if (targetAudience) adData.targetAudience = targetAudience.trim();
-    if (budget) adData.budget = parseFloat(budget);
+
+    console.log("Budget field processing:", {
+      budgetRaw: budget,
+      budgetTrimmed: budget?.trim(),
+      hasBudget: budget && budget.trim(),
+    });
+
+    if (budget && budget.trim()) {
+      const parsedBudget = parseFloat(budget);
+      console.log("Parsing budget:", {
+        original: budget,
+        parsed: parsedBudget,
+        isValid: !isNaN(parsedBudget) && parsedBudget >= 0,
+      });
+      if (!isNaN(parsedBudget) && parsedBudget >= 0) {
+        adData.budget = parsedBudget;
+      }
+    }
     if (startDate) adData.startDate = new Date(startDate);
     if (endDate) adData.endDate = new Date(endDate);
     if (tags) {
@@ -296,6 +321,8 @@ export async function POST(request) {
         adData.tags = [];
       }
     }
+
+    console.log("Final advertisement data before save:", adData);
 
     // Create new advertisement
     const newAdvertisement = new Advertisement(adData);
@@ -472,7 +499,12 @@ export async function PUT(request) {
     if (category) advertisement.category = category;
     if (priority) advertisement.priority = priority;
     if (targetAudience) advertisement.targetAudience = targetAudience.trim();
-    if (budget) advertisement.budget = parseFloat(budget);
+    if (budget && budget.trim()) {
+      const parsedBudget = parseFloat(budget);
+      if (!isNaN(parsedBudget) && parsedBudget >= 0) {
+        advertisement.budget = parsedBudget;
+      }
+    }
     if (startDate) advertisement.startDate = new Date(startDate);
     if (endDate) advertisement.endDate = new Date(endDate);
     if (isActive !== null && isActive !== undefined)
