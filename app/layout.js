@@ -6,6 +6,7 @@ import "./globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import PWAFeatures from "@/components/PWAFeatures";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,6 +51,7 @@ export default function RootLayout({ children }) {
         <LayoutWrapper>{children}</LayoutWrapper>
         <AnalyticsTracker />
         <PWAFeatures />
+        <SpeedInsights />
         <Toaster position="top-center" />
       </body>
     </html>
