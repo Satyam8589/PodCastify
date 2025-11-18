@@ -46,6 +46,12 @@ import { Toaster } from "react-hot-toast";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <meta
+          name="google-site-verification"
+          content="lFMJ-P-rQSZM1roUYtf54Pde5-K-uYRM5nq1501brZQ"
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
